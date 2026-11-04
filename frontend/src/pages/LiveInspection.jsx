@@ -51,6 +51,13 @@ export default function LiveInspection({
     });
   }, []);
 
+  // Refresh camera stream key whenever camera connects
+  useEffect(() => {
+    if (cameraStatus === 'Connected') {
+      setStreamKey(Date.now());
+    }
+  }, [cameraStatus]);
+
   // Update annotated frame timestamp whenever a new inspection arrives
   useEffect(() => {
     if (latestInspection) {
@@ -269,21 +276,28 @@ export default function LiveInspection({
               <Camera className="w-3.5 h-3.5 text-cyan-400" />
               <span className="font-semibold uppercase tracking-wider">Live Laptop Camera</span>
             </div>
-            <div className="flex items-center space-x-2 text-[11px] font-mono">
-              <span className={`w-2 h-2 rounded-full ${cameraStatus === 'Connected' ? 'bg-emerald-400 animate-ping' : 'bg-industrial-600'}`} />
-              <span className="text-industrial-400">{cameraStatus.toUpperCase()}</span>
+            <div className="flex items-center space-x-3 text-[11px] font-mono">
+              <button
+                onClick={() => setStreamKey(Date.now())}
+                title="Refresh Camera Video Stream"
+                className="p-1 rounded hover:bg-industrial-800 text-industrial-400 hover:text-white transition-colors flex items-center space-x-1"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span className="text-[10px]">Refresh</span>
+              </button>
+              <div className="flex items-center space-x-1.5 border-l border-industrial-800 pl-2">
+                <span className={`w-2 h-2 rounded-full ${cameraStatus === 'Connected' ? 'bg-emerald-400 animate-ping' : 'bg-industrial-600'}`} />
+                <span className="text-industrial-400">{cameraStatus.toUpperCase()}</span>
+              </div>
             </div>
           </div>
 
           <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
             <img
+              key={streamKey}
               src={`/api/camera/stream?t=${streamKey}`}
               alt="Live Camera Feed"
               className="w-full h-full object-contain"
-              onError={(e) => {
-                // If stream breaks, show fallback notice
-                e.target.style.display = 'none';
-              }}
             />
             {/* Fallback overlay when stream is disconnected */}
             {cameraStatus !== 'Connected' && (

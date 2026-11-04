@@ -4,7 +4,7 @@ import { api } from '../services/api';
 
 export default function CameraSettings() {
   const [settings, setSettings] = useState({
-    camera_url: 'http://192.168.1.100:8080/video',
+    camera_url: '0',
     capture_interval: 1.0,
     confidence_threshold: 0.25,
     iou_threshold: 0.45,
