@@ -4,71 +4,123 @@
 
 @layer base {
   body {
-    background-color: #F8FAFC;
-    color: #1E293B;
+    background-color: #F5F2EB;
+    color: #1C1917;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
+    -webkit-font-smoothing: antialiased;
   }
   .dark body {
-    background-color: #090D16;
-    color: #F1F5F9;
+    background-color: #141312;
+    color: #F5F2EB;
   }
 }
 
-/* Modern clean scrollbars */
+/* Warm, Tactile Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #EAE5DB;
 }
 .dark ::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: #1C1A18;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #C2B8A3;
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #35302B;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #9A8E77;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #4D463E;
 }
 
-/* Soft grid pattern */
-.bg-grid-pattern {
-  background-size: 32px 32px;
+/* Soft Warm Texture Pattern */
+.bg-warm-pattern {
+  background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+    linear-gradient(to right, rgba(214, 206, 190, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(214, 206, 190, 0.35) 1px, transparent 1px);
 }
-.dark .bg-grid-pattern {
+.dark .bg-warm-pattern {
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
 }
 
-/* Squircle Superellipse Curvature Utilities */
+/* Modular Floating Cards & Containers */
+.modular-card {
+  border-radius: 26px;
+  background-color: #FFFFFF;
+  border: 1px solid #EAE5DB;
+  box-shadow: 0 10px 30px -10px rgba(41, 37, 36, 0.05), 0 2px 8px -2px rgba(41, 37, 36, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.dark .modular-card {
+  background-color: #1C1A18;
+  border-color: #2F2A25;
+  box-shadow: 0 14px 35px -10px rgba(0, 0, 0, 0.35);
+}
+
+.modular-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px -10px rgba(41, 37, 36, 0.08), 0 4px 14px -3px rgba(41, 37, 36, 0.04);
+}
+.dark .modular-card-hover:hover {
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Pill & Organic Curvature Utilities */
+.pill-btn {
+  border-radius: 9999px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pill-badge {
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Squircle Superellipse Curvature Backwards-Compatibility */
 .squircle-card {
-  border-radius: 24px;
+  border-radius: 26px;
 }
 .squircle-card-lg {
-  border-radius: 28px;
+  border-radius: 32px;
 }
 .squircle-btn {
-  border-radius: 14px;
+  border-radius: 9999px;
 }
 .squircle-input {
-  border-radius: 16px;
+  border-radius: 9999px;
 }
 .squircle-badge {
-  border-radius: 12px;
+  border-radius: 9999px;
 }
 .squircle-icon {
-  border-radius: 16px;
+  border-radius: 18px;
+}
+
+/* Flowing Timeline Connector Lines */
+.timeline-stem {
+  position: relative;
+}
+.timeline-stem::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 36px;
+  bottom: 0px;
+  width: 2px;
+  background-color: #EAE5DB;
+}
+.dark .timeline-stem::before {
+  background-color: #2F2A25;
 }

@@ -12,10 +12,19 @@ import {
   ChevronDown,
   User,
   Sun,
-  Moon
+  Moon,
+  ShieldCheck,
+  LayoutDashboard,
+  Camera,
+  History,
+  BarChart3,
+  Sliders,
+  Info
 } from 'lucide-react';
 
 export default function TopHeader({ 
+  activeTab,
+  setActiveTab,
   cameraStatus, 
   modelLoaded, 
   isInspecting, 
@@ -34,122 +43,164 @@ export default function TopHeader({
     return () => clearInterval(timer);
   }, []);
 
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'live', label: 'Live Inspection', icon: Camera, badge: isInspecting ? 'LIVE' : null },
+    { id: 'history', label: 'History', icon: History },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Sliders },
+    { id: 'system', label: 'Diagnostics', icon: Cpu },
+    { id: 'about', label: 'About', icon: Info },
+  ];
+
   return (
-    <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between shrink-0 select-none z-10 transition-colors duration-200">
-      {/* Left: Rounded Search Bar & Filter Dropdown */}
-      <div className="flex items-center space-x-3 flex-1 max-w-xl">
-        {/* Search Input Bar */}
-        <div className="relative w-full max-w-sm">
-          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search inspections, defect tags, batch ID..."
-            className="w-full bg-slate-100/90 dark:bg-slate-800/90 border border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-850 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          />
+    <header className="sticky top-0 z-30 w-full bg-warm-100/95 dark:bg-darkwarm-bg/95 backdrop-blur-md border-b border-warm-200/80 dark:border-darkwarm-border transition-colors duration-200 px-4 lg:px-8 py-3 select-none">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        {/* Left: Brand Identity & Smooth Header Tags */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('live')}>
+            <div className="w-10 h-10 rounded-2xl bg-charcoal-900 dark:bg-warm-100 text-white dark:text-charcoal-900 flex items-center justify-center shadow-tactile transition-transform hover:scale-105">
+              <ShieldCheck className="w-5 h-5 text-neon-lime-accent dark:text-charcoal-900" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-extrabold text-charcoal-900 dark:text-warm-100 tracking-tight text-base font-sans">
+                  Inspect<span className="text-neon-lime-dark dark:text-neon-lime-accent">AI</span>
+                </span>
+                <span className="pill-badge px-2 py-0.5 bg-warm-200/80 dark:bg-darkwarm-card text-charcoal-700 dark:text-warm-300 text-[10px] font-bold border border-warm-300/60 dark:border-darkwarm-border">
+                  v1.0
+                </span>
+                <span className="hidden sm:inline-flex pill-badge px-2 py-0.5 bg-warm-200/50 dark:bg-darkwarm-surface text-charcoal-500 dark:text-darkwarm-text-muted text-[10px] font-medium border border-warm-300/40 dark:border-darkwarm-border">
+                  Quality OS
+                </span>
+              </div>
+              <p className="text-[11px] text-charcoal-500 dark:text-darkwarm-text-muted font-medium">
+                Industrial Vision Workstation
+              </p>
+            </div>
+          </div>
+
+          {/* Mobile Right Controls: Dark Mode & Inspection toggle */}
+          <div className="flex md:hidden items-center space-x-2">
+            <button
+              onClick={onToggleDarkMode}
+              className="p-2 rounded-full bg-white dark:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border text-charcoal-700 dark:text-amber-400 shadow-tactile"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            {isInspecting ? (
+              <button
+                onClick={onStopInspection}
+                className="px-3 py-1.5 rounded-full bg-earth-terracotta text-white text-xs font-bold"
+              >
+                Stop
+              </button>
+            ) : (
+              <button
+                onClick={onStartInspection}
+                className="px-3 py-1.5 rounded-full bg-charcoal-900 text-white text-xs font-bold"
+              >
+                Start
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Filter Dropdown */}
-        <div className="relative">
-          <select
-            value={selectedFilter}
-            onChange={(e) => setSelectedFilter(e.target.value)}
-            className="appearance-none bg-slate-100/90 dark:bg-slate-800/90 hover:bg-slate-200/70 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-full pl-3 pr-7 py-1.5 border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer transition-all"
+        {/* Center: Clean Top Navigation featuring Rounded Pill Buttons */}
+        <nav className="flex items-center overflow-x-auto py-1 scrollbar-none">
+          <div className="inline-flex items-center p-1.5 bg-warm-200/70 dark:bg-darkwarm-surface/90 border border-warm-300/60 dark:border-darkwarm-border rounded-full gap-1 shadow-inner backdrop-blur-sm mx-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`pill-btn relative flex items-center space-x-2 px-3.5 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-all duration-200 ${
+                    isActive
+                      ? 'bg-charcoal-900 text-white shadow-tactile dark:bg-warm-100 dark:text-charcoal-900'
+                      : 'text-charcoal-600 dark:text-darkwarm-text-muted hover:text-charcoal-900 dark:hover:text-warm-100 hover:bg-white/60 dark:hover:bg-darkwarm-card'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-neon-lime-accent dark:text-charcoal-900' : 'text-charcoal-400 dark:text-darkwarm-text-muted'}`} />
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-lime opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-lime"></span>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Right: Hardware Node Badges, Action Button, Dark Mode & User Profile */}
+        <div className="hidden md:flex items-center space-x-2.5">
+          {/* Hardware Stream Node Indicator */}
+          <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border shadow-tactile text-xs">
+            <span className={`w-2 h-2 rounded-full ${
+              cameraStatus === 'Connected' 
+                ? 'bg-neon-lime ring-4 ring-neon-lime/20 animate-pulse' 
+                : 'bg-warm-400 dark:bg-darkwarm-border'
+            }`} />
+            <span className="text-[11px] font-semibold text-charcoal-700 dark:text-warm-200">
+              {cameraStatus === 'Connected' ? 'Webcam Live' : cameraStatus}
+            </span>
+          </div>
+
+          {/* Model Status Pill */}
+          <div className="hidden lg:flex items-center space-x-1 px-3 py-1.5 rounded-full bg-white dark:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border shadow-tactile text-[11px] font-semibold text-charcoal-700 dark:text-warm-200">
+            <Cpu className="w-3.5 h-3.5 text-earth-olive" />
+            <span>YOLO11n</span>
+          </div>
+
+          {/* Dark / Light Mode Switcher */}
+          <button
+            onClick={onToggleDarkMode}
+            title={isDarkMode ? 'Switch to Warm Cream Mode' : 'Switch to Dark Charcoal Mode'}
+            className="p-2 rounded-full bg-white dark:bg-darkwarm-card hover:bg-warm-50 dark:hover:bg-darkwarm-surface border border-warm-200 dark:border-darkwarm-border text-charcoal-700 dark:text-amber-400 shadow-tactile transition-all"
           >
-            <option value="all">All Severstal Classes</option>
-            <option value="pass">Passed Yield</option>
-            <option value="fail">Defect Flawed</option>
-          </select>
-          <ChevronDown className="w-3 h-3 text-slate-500 dark:text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+            {isDarkMode ? (
+              <Sun className="w-4 h-4 text-amber-400 animate-in spin-in-180 duration-200" />
+            ) : (
+              <Moon className="w-4 h-4 text-charcoal-600 animate-in spin-in-180 duration-200" />
+            )}
+          </button>
 
-        {/* Camera & Model Health Quick Indicators */}
-        <div className="hidden xl:flex items-center space-x-2 pl-2">
-          <div className={`flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
-            cameraStatus === 'Connected' 
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50' 
-              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cameraStatus === 'Connected' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            <span>{cameraStatus === 'Connected' ? 'Webcam Live' : cameraStatus}</span>
-          </div>
-
-          <div className={`flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
-            modelLoaded 
-              ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/50' 
-              : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/50'
-          }`}>
-            <Cpu className="w-3 h-3" />
-            <span>{modelLoaded ? 'YOLO11n Active' : 'Model Off'}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Controls: Dark Mode Toggle, Notifications, Clock, Primary Button & Profile */}
-      <div className="flex items-center space-x-3.5">
-        {/* Dark / Light Mode Switcher */}
-        <button
-          onClick={onToggleDarkMode}
-          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          className="p-2 rounded-squircle bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 transition-all flex items-center justify-center border border-slate-200/60 dark:border-slate-700"
-        >
-          {isDarkMode ? (
-            <Sun className="w-4 h-4 text-amber-400 animate-in spin-in-180 duration-200" />
+          {/* Primary Action Button (Start / Stop Inspection) */}
+          {isInspecting ? (
+            <button
+              onClick={onStopInspection}
+              className="pill-btn flex items-center space-x-2 px-4 py-2 bg-earth-terracotta hover:bg-red-700 text-white shadow-tactile hover:shadow-tactile-hover text-xs font-bold uppercase tracking-wider transition-all active:scale-95"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+              <span>Stop Inspection</span>
+            </button>
           ) : (
-            <Moon className="w-4 h-4 text-slate-600 animate-in spin-in-180 duration-200" />
+            <button
+              onClick={onStartInspection}
+              className="pill-btn flex items-center space-x-2 px-5 py-2 bg-charcoal-900 hover:bg-black dark:bg-warm-100 dark:hover:bg-white text-white dark:text-charcoal-900 shadow-tactile hover:shadow-tactile-hover text-xs font-bold uppercase tracking-wider transition-all active:scale-95"
+            >
+              <Play className="w-3.5 h-3.5 fill-current text-neon-lime-accent dark:text-charcoal-900" />
+              <span>Start 1s Cadence</span>
+            </button>
           )}
-        </button>
 
-        {/* Live Clock Pill */}
-        <div className="hidden lg:flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 rounded-full border border-slate-100 dark:border-slate-800">
-          <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-          <span className="font-mono">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-        </div>
-
-        {/* Notification Bell */}
-        <button
-          title="Inspection Alerts & Notifications"
-          className="relative p-2 rounded-squircle hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600" />
-        </button>
-
-        {/* Prominent Primary Action Button */}
-        {isInspecting ? (
-          <button
-            onClick={onStopInspection}
-            className="flex items-center space-x-2 px-4 py-2 rounded-squircle bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/30 transition-all text-xs font-bold uppercase tracking-wider active:scale-95"
-          >
-            <Square className="w-3.5 h-3.5 fill-current" />
-            <span>Stop Inspection</span>
-          </button>
-        ) : (
-          <button
-            onClick={onStartInspection}
-            className="flex items-center space-x-2 px-5 py-2 rounded-squircle bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30 transition-all text-xs font-bold uppercase tracking-wider active:scale-95"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Start Inspection</span>
-          </button>
-        )}
-
-        {/* Vertical Divider */}
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-800" />
-
-        {/* User Profile Badge */}
-        <div className="flex items-center space-x-2.5 pl-1 cursor-pointer group">
-          <div className="w-8 h-8 rounded-squircle bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-            QA
-          </div>
-          <div className="hidden sm:block text-left">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block leading-tight group-hover:text-blue-500 transition-colors">
-              Fardeen Lead
-            </span>
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 block leading-tight font-medium">
-              Lead QA Engineer
-            </span>
+          {/* User Profile Badge */}
+          <div className="flex items-center space-x-2 pl-1 cursor-pointer group">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-charcoal-900 to-charcoal-700 dark:from-warm-200 dark:to-warm-400 flex items-center justify-center text-white dark:text-charcoal-900 text-xs font-bold shadow-tactile border border-warm-300 dark:border-darkwarm-border">
+              QA
+            </div>
+            <div className="hidden xl:block text-left">
+              <span className="text-xs font-bold text-charcoal-900 dark:text-warm-100 block leading-tight">
+                Fardeen Lead
+              </span>
+              <span className="text-[10px] text-charcoal-500 dark:text-darkwarm-text-muted block leading-tight font-medium">
+                Quality Assurance
+              </span>
+            </div>
           </div>
         </div>
       </div>

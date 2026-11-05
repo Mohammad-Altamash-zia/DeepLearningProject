@@ -14,7 +14,9 @@ import {
   RefreshCw,
   Calendar,
   Zap,
-  ArrowRight
+  ArrowRight,
+  History,
+  FileSpreadsheet
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -26,6 +28,7 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
   const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [historyView, setHistoryView] = useState('timeline'); // 'timeline' or 'table'
 
   // Modal detail state
   const [modalData, setModalData] = useState(null);
@@ -78,10 +81,56 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header and Search Filters */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-squircle-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4 transition-colors">
+      {/* Prominent Page Title with Organic Curvature */}
+      <div className="modular-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2.5 mb-2">
+            <span className="pill-badge px-3 py-1 bg-warm-200/80 dark:bg-darkwarm-surface text-charcoal-700 dark:text-warm-200 text-xs font-semibold border border-warm-300/50">
+              Audit Trail
+            </span>
+            <span className="pill-badge px-3 py-1 bg-neon-lime-bg dark:bg-neon-lime-dark/20 text-neon-lime-dark dark:text-neon-lime-accent text-xs font-bold border border-neon-lime/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-neon-lime animate-pulse mr-1.5" />
+              SQLite WAL Indexed
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-900 dark:text-warm-100 font-sans tracking-tight">
+            Inspection History & Audit Records
+          </h1>
+          <p className="text-xs sm:text-sm text-charcoal-500 dark:text-darkwarm-text-muted mt-1 max-w-2xl">
+            Complete historical registry of captured frames, bounding box telemetry, defect classifications, and retention statuses.
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <div className="inline-flex p-1 bg-warm-200/60 dark:bg-darkwarm-surface rounded-full border border-warm-300/60 dark:border-darkwarm-border text-xs">
+            <button
+              onClick={() => setHistoryView('timeline')}
+              className={`pill-btn px-3.5 py-1.5 font-semibold rounded-full ${
+                historyView === 'timeline'
+                  ? 'bg-charcoal-900 text-white shadow-tactile dark:bg-warm-100 dark:text-charcoal-900'
+                  : 'text-charcoal-600 dark:text-darkwarm-text-muted hover:text-charcoal-900'
+              }`}
+            >
+              Flowing Cards
+            </button>
+            <button
+              onClick={() => setHistoryView('table')}
+              className={`pill-btn px-3.5 py-1.5 font-semibold rounded-full ${
+                historyView === 'table'
+                  ? 'bg-charcoal-900 text-white shadow-tactile dark:bg-warm-100 dark:text-charcoal-900'
+                  : 'text-charcoal-600 dark:text-darkwarm-text-muted hover:text-charcoal-900'
+              }`}
+            >
+              Data Table
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Header and Search Filters Bar (Modular Floating Card with Rounded Pill Buttons) */}
+      <div className="modular-card p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 transition-colors">
         {/* Status Tab Filters */}
-        <div className="flex items-center space-x-1.5 bg-slate-100/80 dark:bg-slate-800 p-1 rounded-squircle">
+        <div className="flex items-center space-x-1.5 bg-warm-100 dark:bg-darkwarm-surface p-1.5 rounded-full border border-warm-200 dark:border-darkwarm-border">
           {[
             { id: '', label: 'ALL RECORDS' },
             { id: 'PASS', label: 'PASSED' },
@@ -90,10 +139,10 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
             <button
               key={tab.id}
               onClick={() => { setStatusFilter(tab.id); setPage(1); }}
-              className={`px-3.5 py-1.5 rounded-squircle-xs text-xs font-semibold transition-all ${
+              className={`pill-btn px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
                 statusFilter === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-white/60 dark:hover:bg-slate-700/60'
+                  ? 'bg-charcoal-900 text-white shadow-tactile dark:bg-warm-100 dark:text-charcoal-900'
+                  : 'text-charcoal-600 dark:text-darkwarm-text-muted hover:text-charcoal-900 hover:bg-white/60 dark:hover:bg-darkwarm-card'
               }`}
             >
               {tab.label}
@@ -101,284 +150,327 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
           ))}
         </div>
 
-        {/* Search Bar & Refresh */}
+        {/* Search Bar & Refresh Button */}
         <div className="flex items-center space-x-3 flex-1 max-w-md">
           <form onSubmit={handleSearchSubmit} className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-charcoal-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter by code (e.g. INSP-2026...)"
-              className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-squircle pl-9 pr-4 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
+              placeholder="Search code (e.g. INSP-2026...)"
+              className="w-full bg-warm-50 dark:bg-darkwarm-surface border border-warm-200 dark:border-darkwarm-border rounded-full pl-9 pr-4 py-2 text-xs text-charcoal-800 dark:text-warm-100 placeholder-charcoal-400 focus:outline-none focus:border-charcoal-900 dark:focus:border-warm-200 transition-all shadow-inner"
             />
           </form>
           <button
             onClick={loadData}
             title="Refresh Inspection Logs"
-            className="p-2 rounded-squircle bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+            className="p-2.5 rounded-full bg-warm-100 dark:bg-darkwarm-surface hover:bg-warm-200 dark:hover:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border text-charcoal-700 dark:text-warm-200 transition-colors shadow-tactile"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
-      {/* Main Table Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-squircle-xl overflow-hidden shadow-sm transition-colors">
-        <div className="h-14 px-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      {/* Main Records Container */}
+      <div className="modular-card p-6 transition-colors">
+        <div className="flex items-center justify-between pb-5 mb-5 border-b border-warm-100 dark:border-darkwarm-border">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white font-sans">Historical Telemetry Log</h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Total Records: <strong className="text-slate-700 dark:text-slate-300">{total}</strong> archived inspections</p>
+            <h3 className="text-sm font-bold text-charcoal-900 dark:text-warm-100 font-sans">
+              Historical Registry Data
+            </h3>
+            <p className="text-xs text-charcoal-500 dark:text-darkwarm-text-muted">
+              Total Records: <strong className="text-charcoal-800 dark:text-warm-200">{total}</strong> archived inspections
+            </p>
           </div>
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-100 dark:border-slate-700">
+          <span className="pill-badge px-3.5 py-1 text-xs font-semibold text-charcoal-700 dark:text-warm-200 bg-warm-100 dark:bg-darkwarm-surface border border-warm-200 dark:border-darkwarm-border">
             Page {page} of {totalPages}
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-slate-800">
-              <tr>
-                <th className="py-3 px-6">ID</th>
-                <th className="py-3 px-6">Inspection Code</th>
-                <th className="py-3 px-6">Timestamp</th>
-                <th className="py-3 px-6">Decision</th>
-                <th className="py-3 px-6">Defects</th>
-                <th className="py-3 px-6">Inference Latency</th>
-                <th className="py-3 px-6">Image Status</th>
-                <th className="py-3 px-6 text-right">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {inspections.length > 0 ? (
-                inspections.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3.5 px-6 font-mono text-slate-400 dark:text-slate-500 font-semibold">#{item.id}</td>
-                    <td className="py-3.5 px-6 font-mono font-bold text-blue-600 dark:text-blue-400">{item.inspection_code}</td>
-                    <td className="py-3.5 px-6 text-slate-500 dark:text-slate-400 font-medium">
-                      {new Date(item.timestamp).toLocaleString()}
-                    </td>
-                    <td className="py-3.5 px-6">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                        item.status === 'PASS'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
-                          : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-6 text-slate-900 dark:text-white font-bold">{item.defect_count}</td>
-                    <td className="py-3.5 px-6 font-mono text-slate-600 dark:text-slate-300">{item.inference_time_ms.toFixed(1)} ms</td>
-                    <td className="py-3.5 px-6">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold ${
-                        item.processing_status === 'IMAGE_EXPIRED'
-                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
-                          : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border border-blue-100 dark:border-blue-900'
-                      }`}>
-                        {item.processing_status === 'IMAGE_EXPIRED' ? 'EXPIRED' : 'DISK SAVED'}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-6 text-right">
-                      <button
-                        onClick={() => setActiveModalId(item.id)}
-                        className="p-1.5 rounded-squircle-xs bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-300 transition-all inline-flex items-center space-x-1"
-                        title="View Full Inspection Diagnostics"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span className="text-[11px] font-medium pr-1">View</span>
-                      </button>
+        {/* View Mode 1: Flowing Cards with Connected Timeline Nodes */}
+        {historyView === 'timeline' ? (
+          <div className="relative pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-warm-200 dark:before:bg-darkwarm-border">
+            {inspections.length > 0 ? (
+              inspections.map((item) => {
+                const isPass = item.status === 'PASS';
+                return (
+                  <div key={item.id} className="relative group">
+                    {/* Glowing highlight node marker */}
+                    <div className={`absolute -left-[23px] sm:-left-[27px] top-4 w-4 h-4 rounded-full border-2 bg-white dark:bg-darkwarm-card transition-transform group-hover:scale-125 ${
+                      isPass 
+                        ? 'border-neon-lime ring-4 ring-neon-lime/20' 
+                        : 'border-earth-terracotta ring-4 ring-earth-terracotta/20'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mx-auto my-0.5 ${isPass ? 'bg-neon-lime' : 'bg-earth-terracotta'}`} />
+                    </div>
+
+                    {/* Modular Flowing Card */}
+                    <div className="bg-warm-50/70 dark:bg-darkwarm-surface/70 hover:bg-white dark:hover:bg-darkwarm-card p-4 sm:p-5 rounded-2xl border border-warm-200/60 dark:border-darkwarm-border shadow-tactile transition-all flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="font-mono text-xs text-charcoal-400 font-semibold">#{item.id}</span>
+                        <span className="font-mono font-bold text-xs text-charcoal-900 dark:text-warm-100">{item.inspection_code}</span>
+
+                        <span className={`pill-badge px-2.5 py-0.5 text-[11px] font-bold ${
+                          isPass
+                            ? 'bg-neon-lime-bg dark:bg-neon-lime-dark/25 text-neon-lime-dark dark:text-neon-lime-accent border border-neon-lime/30'
+                            : 'bg-earth-terracotta-bg dark:bg-earth-terracotta/25 text-earth-terracotta border border-earth-terracotta/30'
+                        }`}>
+                          {item.status}
+                        </span>
+
+                        <span className="text-xs text-charcoal-500 dark:text-darkwarm-text-muted flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-charcoal-400" />
+                          <span>{new Date(item.timestamp).toLocaleString()}</span>
+                        </span>
+
+                        <span className="pill-badge px-2.5 py-0.5 bg-warm-200/60 dark:bg-darkwarm-card text-charcoal-700 dark:text-warm-200 text-xs font-semibold">
+                          {item.defect_count} defect(s)
+                        </span>
+
+                        <span className="font-mono text-[11px] text-charcoal-500 dark:text-darkwarm-text-muted">
+                          {item.inference_time_ms.toFixed(1)} ms
+                        </span>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <span className={`pill-badge px-2.5 py-0.5 text-[10px] font-mono font-semibold ${
+                          item.processing_status === 'IMAGE_EXPIRED'
+                            ? 'bg-warm-200/40 text-charcoal-400 dark:text-darkwarm-text-muted'
+                            : 'bg-warm-200 text-charcoal-800 dark:bg-darkwarm-card dark:text-warm-200 border border-warm-300/40'
+                        }`}>
+                          {item.processing_status === 'IMAGE_EXPIRED' ? 'EXPIRED' : 'DISK SAVED'}
+                        </span>
+
+                        <button
+                          onClick={() => setActiveModalId(item.id)}
+                          className="pill-btn px-4 py-1.5 bg-white hover:bg-charcoal-900 hover:text-white dark:bg-darkwarm-card dark:hover:bg-warm-100 dark:hover:text-charcoal-900 text-charcoal-800 dark:text-warm-200 text-xs font-semibold border border-warm-200 dark:border-darkwarm-border shadow-sm transition-all flex items-center space-x-1"
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          <span>View Detail</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-12 text-center text-xs text-charcoal-400 dark:text-darkwarm-text-muted">
+                No matching inspection records found.
+              </div>
+            )}
+          </div>
+        ) : (
+          /* View Mode 2: Structured Data Table */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-warm-50 dark:bg-darkwarm-surface text-charcoal-500 dark:text-darkwarm-text-muted font-semibold border-b border-warm-100 dark:border-darkwarm-border">
+                <tr>
+                  <th className="py-3 px-4">ID</th>
+                  <th className="py-3 px-4">Inspection Code</th>
+                  <th className="py-3 px-4">Timestamp</th>
+                  <th className="py-3 px-4">Decision</th>
+                  <th className="py-3 px-4">Defects</th>
+                  <th className="py-3 px-4">Inference Latency</th>
+                  <th className="py-3 px-4">Image Status</th>
+                  <th className="py-3 px-4 text-right">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-warm-100 dark:divide-darkwarm-border">
+                {inspections.length > 0 ? (
+                  inspections.map((item) => (
+                    <tr key={item.id} className="hover:bg-warm-50/70 dark:hover:bg-darkwarm-surface/50 transition-colors">
+                      <td className="py-3.5 px-4 font-mono text-charcoal-400 font-semibold">#{item.id}</td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-charcoal-900 dark:text-warm-100">{item.inspection_code}</td>
+                      <td className="py-3.5 px-4 text-charcoal-500 dark:text-darkwarm-text-muted font-medium">
+                        {new Date(item.timestamp).toLocaleString()}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`pill-badge px-2.5 py-0.5 text-[11px] font-bold ${
+                          item.status === 'PASS'
+                            ? 'bg-neon-lime-bg dark:bg-neon-lime-dark/25 text-neon-lime-dark dark:text-neon-lime-accent border border-neon-lime/30'
+                            : 'bg-earth-terracotta-bg dark:bg-earth-terracotta/25 text-earth-terracotta border border-earth-terracotta/30'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-charcoal-900 dark:text-warm-100 font-bold">{item.defect_count}</td>
+                      <td className="py-3.5 px-4 font-mono text-charcoal-600 dark:text-darkwarm-text-muted">{item.inference_time_ms.toFixed(1)} ms</td>
+                      <td className="py-3.5 px-4">
+                        <span className="pill-badge px-2 py-0.5 text-[10px] font-mono font-semibold bg-warm-100 dark:bg-darkwarm-surface text-charcoal-600 dark:text-darkwarm-text-muted">
+                          {item.processing_status === 'IMAGE_EXPIRED' ? 'EXPIRED' : 'DISK SAVED'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => setActiveModalId(item.id)}
+                          className="pill-btn px-3 py-1 bg-warm-100 hover:bg-charcoal-900 hover:text-white dark:bg-darkwarm-surface text-charcoal-700 dark:text-warm-200 text-xs transition-all inline-flex items-center space-x-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-charcoal-400 dark:text-darkwarm-text-muted">
+                      No matching inspection records found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400 dark:text-slate-500">
-                    No matching inspection records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Pagination Controls */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <div>
-            Showing <strong className="text-slate-700 dark:text-slate-200">{inspections.length}</strong> of <strong className="text-slate-700 dark:text-slate-200">{total}</strong> records
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="p-1.5 rounded-squircle-xs border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="font-semibold text-slate-700 dark:text-slate-300 px-2 font-mono">
-              {page} / {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="p-1.5 rounded-squircle-xs border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="h-16 px-4 border-t border-warm-100 dark:border-darkwarm-border flex items-center justify-between mt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="pill-btn px-4 py-2 border border-warm-200 dark:border-darkwarm-border bg-white dark:bg-darkwarm-card text-charcoal-700 dark:text-warm-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-warm-100 text-xs font-semibold shadow-sm flex items-center space-x-1"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+          <span className="text-xs font-medium text-charcoal-500 dark:text-darkwarm-text-muted">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="pill-btn px-4 py-2 border border-warm-200 dark:border-darkwarm-border bg-white dark:bg-darkwarm-card text-charcoal-700 dark:text-warm-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-warm-100 text-xs font-semibold shadow-sm flex items-center space-x-1"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Detail Inspection Modal Dialog */}
+      {/* Inspection Detail Modal (Modular Floating Card with Organic Curvature) */}
       {activeModalId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-squircle-2xl max-w-4xl w-full border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="modular-card w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-tactile-lg border border-warm-200 dark:border-darkwarm-border p-6 sm:p-8 animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="h-16 px-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="flex items-center justify-between pb-4 border-b border-warm-100 dark:border-darkwarm-border">
               <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-squircle flex items-center justify-center font-bold text-white text-xs ${
-                  modalData?.status === 'PASS' ? 'bg-emerald-500' : 'bg-rose-600'
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-tactile ${
+                  modalData?.status === 'PASS' 
+                    ? 'bg-neon-lime-dark' 
+                    : 'bg-earth-terracotta'
                 }`}>
-                  {modalData?.status || '...'}
+                  {modalData?.status || '—'}
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm font-sans">
-                    Inspection Detail: <span className="text-blue-600 dark:text-blue-400 font-mono">{modalData?.inspection_code || activeModalId}</span>
+                  <h3 className="text-base font-bold text-charcoal-900 dark:text-warm-100 font-sans">
+                    Inspection Diagnostics — #{activeModalId}
                   </h3>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Timestamp: {modalData?.timestamp ? new Date(modalData.timestamp).toLocaleString() : '—'}
-                  </p>
+                  <span className="text-xs text-charcoal-500 dark:text-darkwarm-text-muted font-mono">
+                    {modalData?.inspection_code || 'Loading details...'}
+                  </span>
                 </div>
               </div>
               <button
-                onClick={() => {
-                  setActiveModalId(null);
-                  if (onCloseModal) onCloseModal();
-                }}
-                className="p-2 rounded-squircle text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                onClick={() => { setActiveModalId(null); if (onCloseModal) onCloseModal(); }}
+                className="p-2 rounded-full hover:bg-warm-100 dark:hover:bg-darkwarm-surface text-charcoal-400 hover:text-charcoal-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
-              {modalLoading ? (
-                <div className="py-20 text-center text-slate-400">
-                  <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
-                  <p className="text-xs">Loading inspection telemetry...</p>
-                </div>
-              ) : modalData ? (
-                <>
-                  {/* Image Preview & Buffer Status */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Raw Capture View */}
-                    <div className="space-y-2">
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                        Original Capture
-                      </span>
-                      <div className="aspect-video bg-slate-950 rounded-squircle-lg overflow-hidden relative flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                        {modalData.image_url ? (
-                          <img
-                            src={modalData.image_url}
-                            alt="Original Capture"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-center p-4 text-slate-400">
-                            <ImageOff className="w-8 h-8 mx-auto mb-1 text-slate-500" />
-                            <p className="text-xs font-semibold">Image File Expired</p>
-                            <p className="text-[10px] text-slate-500">Deleted by 100s retention buffer</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Annotated Result View */}
-                    <div className="space-y-2">
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                        YOLO11n Defect Overlay
-                      </span>
-                      <div className="aspect-video bg-slate-950 rounded-squircle-lg overflow-hidden relative flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                        {modalData.annotated_image_url ? (
-                          <img
-                            src={modalData.annotated_image_url}
-                            alt="Annotated Inspection"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-center p-4 text-slate-400">
-                            <ImageOff className="w-8 h-8 mx-auto mb-1 text-slate-500" />
-                            <p className="text-xs font-semibold">Annotated Image Expired</p>
-                            <p className="text-[10px] text-slate-500">Deleted by 100s retention buffer</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Summary Metric Chips */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-slate-50 dark:bg-slate-800/80 p-3 rounded-squircle border border-slate-100 dark:border-slate-700/60">
-                      <span className="text-slate-400 dark:text-slate-500 block text-[11px]">DECISION</span>
-                      <strong className={`text-sm ${modalData.status === 'PASS' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                        {modalData.status}
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/80 p-3 rounded-squircle border border-slate-100 dark:border-slate-700/60">
-                      <span className="text-slate-400 dark:text-slate-500 block text-[11px]">DEFECT COUNT</span>
-                      <strong className="text-sm text-slate-800 dark:text-white">{modalData.defect_count}</strong>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/80 p-3 rounded-squircle border border-slate-100 dark:border-slate-700/60">
-                      <span className="text-slate-400 dark:text-slate-500 block text-[11px]">INFERENCE TIME</span>
-                      <strong className="text-sm text-blue-600 dark:text-blue-400 font-mono">{modalData.inference_time_ms.toFixed(1)} ms</strong>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/80 p-3 rounded-squircle border border-slate-100 dark:border-slate-700/60">
-                      <span className="text-slate-400 dark:text-slate-500 block text-[11px]">DISK BUFFER</span>
-                      <strong className="text-sm text-slate-700 dark:text-slate-300 font-mono">{modalData.processing_status}</strong>
-                    </div>
-                  </div>
-
-                  {/* Defect Detections Table */}
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                      Detected Anomaly Regions ({modalData.detections?.length || 0})
-                    </h4>
-                    {modalData.detections && modalData.detections.length > 0 ? (
-                      <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-700 rounded-squircle-md">
-                        <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200/80 dark:border-slate-750">
-                            <tr>
-                              <th className="py-2.5 px-4">#</th>
-                              <th className="py-2.5 px-4">Class</th>
-                              <th className="py-2.5 px-4">Confidence</th>
-                              <th className="py-2.5 px-4">Bounding Box</th>
-                              <th className="py-2.5 px-4">Dimensions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {modalData.detections.map((det, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td className="py-2.5 px-4 text-slate-400 dark:text-slate-500">{idx + 1}</td>
-                                <td className="py-2.5 px-4 font-bold text-amber-600 dark:text-amber-400">{det.class_name}</td>
-                                <td className="py-2.5 px-4 font-mono font-bold text-slate-800 dark:text-white">
-                                  {det.confidence_pct || `${(det.confidence * 100).toFixed(1)}%`}
-                                </td>
-                                <td className="py-2.5 px-4 font-mono text-slate-600 dark:text-slate-300">[{det.x1}, {det.y1}, {det.x2}, {det.y2}]</td>
-                                <td className="py-2.5 px-4 font-mono text-slate-500 dark:text-slate-400">{det.width} x {det.height} px</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 p-4 rounded-squircle text-center">
-                        No surface defects detected in this inspection cycle.
+            {/* Modal Content */}
+            {modalLoading ? (
+              <div className="py-20 text-center text-charcoal-500 flex flex-col items-center justify-center space-y-2">
+                <RefreshCw className="w-6 h-6 animate-spin text-charcoal-400" />
+                <span className="text-xs">Loading inspection telemetry...</span>
+              </div>
+            ) : modalData ? (
+              <div className="space-y-6 pt-5">
+                {/* Image Snapshot Box */}
+                <div className="bg-charcoal-950 rounded-2xl overflow-hidden aspect-video relative flex items-center justify-center border border-warm-200/30">
+                  {modalData.image_data_base64 ? (
+                    <img
+                      src={`data:image/jpeg;base64,${modalData.image_data_base64}`}
+                      alt="Captured Inspection"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-center p-8 text-warm-300">
+                      <ImageOff className="w-12 h-12 mx-auto mb-3 text-warm-400" />
+                      <p className="text-sm font-bold text-warm-100">Physical Capture File Expired</p>
+                      <p className="text-xs text-warm-400 mt-1 max-w-sm">
+                        This frame passed the 100-second retention limit and was purged from disk.
+                        Permanent classification data remains archived below in SQLite.
                       </p>
-                    )}
+                    </div>
+                  )}
+                  <div className="absolute top-3 left-3 px-3 py-1 bg-charcoal-900/80 backdrop-blur-md rounded-full text-[10px] font-mono text-neon-lime-accent border border-white/10">
+                    STATUS: {modalData.processing_status}
                   </div>
-                </>
-              ) : null}
-            </div>
+                </div>
+
+                {/* Metadata Pills Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-warm-50 dark:bg-darkwarm-surface p-3.5 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border">
+                    <span className="text-charcoal-400 block text-[10px] uppercase font-semibold">Deciding Status</span>
+                    <span className={`font-bold mt-1 block text-sm ${modalData.status === 'PASS' ? 'text-neon-lime-dark' : 'text-earth-terracotta'}`}>
+                      {modalData.status}
+                    </span>
+                  </div>
+                  <div className="bg-warm-50 dark:bg-darkwarm-surface p-3.5 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border">
+                    <span className="text-charcoal-400 block text-[10px] uppercase font-semibold">Defect Count</span>
+                    <span className="font-bold text-charcoal-900 dark:text-warm-100 mt-1 block text-sm">
+                      {modalData.defect_count} defect(s)
+                    </span>
+                  </div>
+                  <div className="bg-warm-50 dark:bg-darkwarm-surface p-3.5 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border">
+                    <span className="text-charcoal-400 block text-[10px] uppercase font-semibold">Inference Latency</span>
+                    <span className="font-bold font-mono text-charcoal-900 dark:text-warm-100 mt-1 block text-sm">
+                      {modalData.inference_time_ms.toFixed(1)} ms
+                    </span>
+                  </div>
+                  <div className="bg-warm-50 dark:bg-darkwarm-surface p-3.5 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border">
+                    <span className="text-charcoal-400 block text-[10px] uppercase font-semibold">Timestamp</span>
+                    <span className="font-medium text-charcoal-700 dark:text-warm-200 mt-1 block text-xs">
+                      {new Date(modalData.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Defect Entity Breakdown */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900 dark:text-warm-100 mb-3 font-sans">
+                    Detailed Defect Bounding Records
+                  </h4>
+                  {modalData.detections && modalData.detections.length > 0 ? (
+                    <div className="space-y-2">
+                      {modalData.detections.map((d, i) => (
+                        <div
+                          key={i}
+                          className="bg-warm-50 dark:bg-darkwarm-surface p-3 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border flex items-center justify-between text-xs"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <span className="w-5 h-5 rounded-full bg-earth-terracotta-bg text-earth-terracotta text-[10px] font-bold flex items-center justify-center">
+                              {i + 1}
+                            </span>
+                            <span className="font-bold text-earth-terracotta">{d.class_name}</span>
+                            <span className="font-mono text-charcoal-500">[{d.bbox.map(b => Math.round(b)).join(', ')}]</span>
+                          </div>
+                          <span className="font-mono font-bold text-charcoal-800 dark:text-warm-100">
+                            {(d.confidence * 100).toFixed(1)}% confidence
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-warm-50 dark:bg-darkwarm-surface rounded-2xl border border-warm-200/70 dark:border-darkwarm-border text-xs text-charcoal-500 text-center">
+                      Zero defects classified on this inspection cycle. Surface meets quality tolerance (PASS).
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

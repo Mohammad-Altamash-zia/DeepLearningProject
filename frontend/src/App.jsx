@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
 import TopHeader from './components/TopHeader';
 import DashboardOverview from './pages/DashboardOverview';
 import LiveInspection from './pages/LiveInspection';
@@ -83,7 +82,6 @@ export default function App() {
         setRecentInspections((prev) => [item, ...prev.slice(0, 14)]);
       } else if (msg.type === 'STATISTICS_UPDATE') {
         setAnalytics(msg.data);
-        // Refresh defect distribution
         api.getDefectDistribution().then((d) => setDefectDist(d || []));
       } else if (msg.type === 'INSPECTION_STATUS') {
         setIsInspecting(msg.data.is_inspecting);
@@ -103,7 +101,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Periodic Telemetry Poll (Every 5 seconds for background telemetry sync)
+  // Periodic Telemetry Poll (Every 4 seconds)
   useEffect(() => {
     const timer = setInterval(async () => {
       try {
@@ -183,32 +181,24 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200">
-      {/* Navigation Sidebar */}
-      <Sidebar
+    <div className="min-h-screen flex flex-col bg-warm-100 dark:bg-darkwarm-bg font-sans text-charcoal-900 dark:text-darkwarm-text selection:bg-neon-lime/30 transition-colors duration-250">
+      {/* Clean Top Navigation featuring Rounded Pill Buttons */}
+      <TopHeader
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         cameraStatus={cameraStatus}
+        modelLoaded={modelLoaded}
         isInspecting={isInspecting}
+        onStartInspection={handleStartInspection}
+        onStopInspection={handleStopInspection}
+        systemHealth={systemHealth}
         isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 dark:bg-slate-950">
-        {/* Top Header */}
-        <TopHeader
-          cameraStatus={cameraStatus}
-          modelLoaded={modelLoaded}
-          isInspecting={isInspecting}
-          onStartInspection={handleStartInspection}
-          onStopInspection={handleStopInspection}
-          systemHealth={systemHealth}
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={toggleDarkMode}
-        />
-
-        {/* Tab Page Router */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-grid-pattern">
+      {/* Main Spacious Canvas with Soft Warm Pattern */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-warm-pattern overflow-y-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
           {activeTab === 'dashboard' && (
             <DashboardOverview
               analytics={analytics}
@@ -253,9 +243,8 @@ export default function App() {
           {activeTab === 'system' && <SystemStatus />}
 
           {activeTab === 'about' && <About />}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
-
