@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, AlertTriangle, Activity, Zap, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Activity, Zap, Layers, Clock } from 'lucide-react';
 
 export default function MetricCards({ analytics, inspectionTelemetry }) {
   const total = analytics?.total_inspections || 0;
@@ -15,102 +15,116 @@ export default function MetricCards({ analytics, inspectionTelemetry }) {
   return (
     <div className="space-y-4">
       {/* 4 Top Primary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Total Inspections */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-4 shadow-sm hover:border-industrial-700 transition-all">
-          <div className="flex items-center justify-between text-industrial-400 mb-2">
-            <span className="text-xs font-medium uppercase tracking-wider">Total Inspections</span>
-            <Activity className="w-4 h-4 text-cyan-400" />
+        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Inspections</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <Activity className="w-4 h-4" />
+            </div>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-white">{total.toLocaleString()}</span>
-            <span className="text-xs text-industrial-500 font-mono">cycles</span>
+            <span className="text-3xl font-extrabold text-slate-900 font-sans tracking-tight">{total.toLocaleString()}</span>
+            <span className="text-xs font-semibold text-slate-400">cycles</span>
           </div>
-          <div className="mt-2 text-[11px] text-industrial-500 flex justify-between items-center">
-            <span>Today: {analytics?.today_inspections || 0}</span>
-            <span className="text-cyan-400">All-time DB</span>
+          <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-500">
+            <span>Today: <strong className="text-slate-700">{analytics?.today_inspections || 0}</strong></span>
+            <span className="text-blue-600 font-semibold bg-blue-50/70 px-2 py-0.5 rounded-full text-[11px]">All-time</span>
           </div>
         </div>
 
         {/* PASS Count */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-4 shadow-sm hover:border-industrial-700 transition-all">
-          <div className="flex items-center justify-between text-industrial-400 mb-2">
-            <span className="text-xs font-medium uppercase tracking-wider">Passed (Defect-Free)</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Passed Yield</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-emerald-400">{passCount.toLocaleString()}</span>
-            <span className="text-xs text-emerald-500/70 font-mono">
+            <span className="text-3xl font-extrabold text-emerald-600 font-sans tracking-tight">{passCount.toLocaleString()}</span>
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
               {total > 0 ? `${((passCount / total) * 100).toFixed(1)}%` : '0%'}
             </span>
           </div>
-          <div className="mt-2 text-[11px] text-industrial-500 flex justify-between items-center">
+          <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-500">
             <span>Threshold Met</span>
-            <span className="text-emerald-400">Yield OK</span>
+            <span className="text-emerald-600 font-semibold text-[11px]">Clean Surface</span>
           </div>
         </div>
 
         {/* FAIL Count */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-4 shadow-sm hover:border-industrial-700 transition-all">
-          <div className="flex items-center justify-between text-industrial-400 mb-2">
-            <span className="text-xs font-medium uppercase tracking-wider">Failed (Defects Detected)</span>
-            <AlertTriangle className="w-4 h-4 text-red-400" />
+        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Defects Flagged</span>
+            <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-red-400">{failCount.toLocaleString()}</span>
-            <span className="text-xs text-red-500/70 font-mono">
+            <span className="text-3xl font-extrabold text-rose-600 font-sans tracking-tight">{failCount.toLocaleString()}</span>
+            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">
               {total > 0 ? `${((failCount / total) * 100).toFixed(1)}%` : '0%'}
             </span>
           </div>
-          <div className="mt-2 text-[11px] text-industrial-500 flex justify-between items-center">
-            <span>Total defects found: {analytics?.total_defects_found || 0}</span>
-            <span className="text-red-400">Flagged</span>
+          <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-500">
+            <span>Found: <strong className="text-slate-700">{analytics?.total_defects_found || 0} defects</strong></span>
+            <span className="text-rose-600 font-semibold text-[11px]">Reject/Review</span>
           </div>
         </div>
 
-        {/* Defect Detection Rate */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-4 shadow-sm hover:border-industrial-700 transition-all">
-          <div className="flex items-center justify-between text-industrial-400 mb-2">
-            <span className="text-xs font-medium uppercase tracking-wider">Defect Detection Rate</span>
-            <Zap className="w-4 h-4 text-amber-400" />
+        {/* Defect Detection Rate & Latency */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inference Speed</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <Zap className="w-4 h-4" />
+            </div>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-amber-400">{defectRate}%</span>
-            <span className="text-xs text-industrial-500 font-mono">ratio</span>
+            <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{latency.toFixed(1)}</span>
+            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">ms / frame</span>
           </div>
-          <div className="mt-2 text-[11px] text-industrial-500 flex justify-between items-center">
-            <span>Inference Latency:</span>
-            <span className="text-cyan-400 font-mono">{latency} ms</span>
+          <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-500">
+            <span>Defect Ratio: <strong className="text-slate-700">{defectRate}%</strong></span>
+            <span className="text-blue-600 font-semibold text-[11px]">YOLO11n ONNX</span>
           </div>
         </div>
       </div>
 
       {/* Frame Scheduler Bar */}
-      <div className="bg-industrial-850/80 border border-industrial-800 rounded-lg px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-        <div className="flex items-center space-x-6 text-industrial-400">
+      <div className="bg-white border border-slate-100 rounded-2xl px-5 py-3 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div className="flex items-center space-x-6 text-slate-600 font-medium">
           <div className="flex items-center space-x-2">
-            <span className="text-industrial-500">Scheduler Interval:</span>
-            <span className="text-cyan-400 font-bold">{inspectionTelemetry?.capture_interval || 1.0}s</span>
+            <span className="text-slate-400">Capture Interval:</span>
+            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-mono font-bold">
+              {inspectionTelemetry?.capture_interval || 1.0}s
+            </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-industrial-500">Captured:</span>
-            <span className="text-white">{captured}</span>
+          <div className="flex items-center space-x-1.5">
+            <span className="text-slate-400">Captured:</span>
+            <span className="font-bold text-slate-800 font-mono">{captured}</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-industrial-500">Processed:</span>
-            <span className="text-emerald-400">{processed}</span>
+          <div className="flex items-center space-x-1.5">
+            <span className="text-slate-400">Processed:</span>
+            <span className="font-bold text-emerald-600 font-mono">{processed}</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-industrial-500">Dropped/Skipped:</span>
-            <span className={skipped > 0 ? 'text-amber-400 font-bold' : 'text-industrial-400'}>{skipped}</span>
+          <div className="flex items-center space-x-1.5">
+            <span className="text-slate-400">Skipped:</span>
+            <span className="font-bold text-amber-600 font-mono">{skipped}</span>
           </div>
         </div>
-        <div className="flex items-center space-x-2 text-[11px] text-industrial-500">
-          <RefreshCw className="w-3 h-3 text-cyan-400 animate-spin" style={{ animationDuration: '4s' }} />
-          <span>Rolling 100s Retention Active</span>
+
+        <div className="flex items-center space-x-4 text-slate-500">
+          <div className="flex items-center space-x-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-medium text-slate-700">Bounded Queue Buffer Active</span>
+          </div>
+          <span className="text-slate-300">|</span>
+          <span className="font-mono text-[11px] text-slate-400">100s Rolling Retention</span>
         </div>
       </div>
     </div>
   );
 }
-

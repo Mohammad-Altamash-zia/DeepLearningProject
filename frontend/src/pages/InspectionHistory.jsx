@@ -11,7 +11,10 @@ import {
   Clock, 
   Layers, 
   ImageOff,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  Zap,
+  ArrowRight
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -74,11 +77,11 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header and Search Filters */}
-      <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
         {/* Status Tab Filters */}
-        <div className="flex items-center space-x-1 bg-industrial-950 p-1 rounded-lg border border-industrial-800">
+        <div className="flex items-center space-x-1.5 bg-slate-100/80 p-1 rounded-xl">
           {[
             { id: '', label: 'ALL RECORDS' },
             { id: 'PASS', label: 'PASSED' },
@@ -87,10 +90,10 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
             <button
               key={tab.id}
               onClick={() => { setStatusFilter(tab.id); setPage(1); }}
-              className={`px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 statusFilter === tab.id
-                  ? 'bg-industrial-800 text-white shadow-sm'
-                  : 'text-industrial-400 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
               }`}
             >
               {tab.label}
@@ -98,95 +101,99 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
           ))}
         </div>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="w-3.5 h-3.5 text-industrial-500 absolute left-3 top-2.5" />
+        {/* Search Bar & Refresh */}
+        <div className="flex items-center space-x-3 flex-1 max-w-md">
+          <form onSubmit={handleSearchSubmit} className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by code (e.g. INSP-20261103) or date..."
-              className="w-full bg-industrial-950 border border-industrial-700 rounded-lg pl-9 pr-4 py-1.5 text-xs font-mono text-white placeholder-industrial-500 focus:outline-none focus:border-cyan-500"
+              placeholder="Filter by code (e.g. INSP-2026...)"
+              className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
             />
-          </div>
+          </form>
           <button
-            type="submit"
-            className="px-3.5 py-1.5 rounded-lg bg-industrial-800 hover:bg-industrial-700 text-industrial-200 text-xs font-mono transition-colors"
-          >
-            Filter
-          </button>
-          <button
-            type="button"
             onClick={loadData}
-            title="Refresh Table"
-            className="p-1.5 rounded-lg bg-industrial-800 hover:bg-industrial-700 text-industrial-300 transition-colors"
+            title="Refresh Inspection Logs"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-        </form>
+        </div>
       </div>
 
-      {/* Main Inspections Table */}
-      <div className="bg-industrial-900 border border-industrial-800 rounded-xl overflow-hidden shadow-sm">
+      {/* Main Table Card */}
+      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+        <div className="h-14 px-6 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 font-sans">Historical Telemetry Log</h3>
+            <p className="text-xs text-slate-400">Total Records: <strong className="text-slate-700">{total}</strong> archived inspections</p>
+          </div>
+          <span className="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+            Page {page} of {totalPages}
+          </span>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-industrial-950 text-industrial-400 border-b border-industrial-800">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-100">
               <tr>
-                <th className="py-3 px-4">ID</th>
-                <th className="py-3 px-4">Inspection Code</th>
-                <th className="py-3 px-4">Timestamp</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Defects</th>
-                <th className="py-3 px-4">Inference Latency</th>
-                <th className="py-3 px-4">Retention Status</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-3 px-6">ID</th>
+                <th className="py-3 px-6">Inspection Code</th>
+                <th className="py-3 px-6">Timestamp</th>
+                <th className="py-3 px-6">Decision</th>
+                <th className="py-3 px-6">Defects</th>
+                <th className="py-3 px-6">Inference Latency</th>
+                <th className="py-3 px-6">Image Status</th>
+                <th className="py-3 px-6 text-right">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-industrial-800">
+            <tbody className="divide-y divide-slate-100">
               {inspections.length > 0 ? (
                 inspections.map((item) => (
-                  <tr key={item.id} className="hover:bg-industrial-850/50 transition-colors">
-                    <td className="py-3 px-4 text-industrial-500">#{item.id}</td>
-                    <td className="py-3 px-4 text-cyan-400 font-semibold">{item.inspection_code}</td>
-                    <td className="py-3 px-4 text-industrial-300">
+                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 px-6 font-mono text-slate-400 font-semibold">#{item.id}</td>
+                    <td className="py-3.5 px-6 font-mono font-bold text-blue-600">{item.inspection_code}</td>
+                    <td className="py-3.5 px-6 text-slate-500 font-medium">
                       {new Date(item.timestamp).toLocaleString()}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    <td className="py-3.5 px-6">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                         item.status === 'PASS'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}>
                         {item.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-white font-bold">{item.defect_count}</td>
-                    <td className="py-3 px-4 text-industrial-300">{item.inference_time_ms.toFixed(1)} ms</td>
-                    <td className="py-3 px-4">
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${
+                    <td className="py-3.5 px-6 text-slate-900 font-bold">{item.defect_count}</td>
+                    <td className="py-3.5 px-6 font-mono text-slate-600">{item.inference_time_ms.toFixed(1)} ms</td>
+                    <td className="py-3.5 px-6">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold ${
                         item.processing_status === 'IMAGE_EXPIRED'
-                          ? 'bg-industrial-800/80 text-industrial-500 border border-industrial-700'
-                          : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
+                          ? 'bg-slate-100 text-slate-400'
+                          : 'bg-blue-50 text-blue-600 border border-blue-100'
                       }`}>
-                        {item.processing_status === 'IMAGE_EXPIRED' ? 'IMAGE EXPIRED (>100s)' : 'IMAGE ON DISK'}
+                        {item.processing_status === 'IMAGE_EXPIRED' ? 'EXPIRED' : 'DISK SAVED'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-6 text-right">
                       <button
                         onClick={() => setActiveModalId(item.id)}
-                        className="px-2.5 py-1 rounded bg-industrial-800 hover:bg-industrial-700 text-industrial-200 text-xs font-mono transition-colors inline-flex items-center space-x-1"
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-600 transition-all inline-flex items-center space-x-1"
+                        title="View Full Inspection Diagnostics"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>View</span>
+                        <span className="text-[11px] font-medium pr-1">View</span>
                       </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-industrial-500">
-                    {loading ? 'Querying SQLite database...' : 'No inspection records match the current filters.'}
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    No matching inspection records found.
                   </td>
                 </tr>
               )}
@@ -194,27 +201,26 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
           </table>
         </div>
 
-        {/* Pagination Footer */}
-        <div className="h-12 px-5 bg-industrial-950 border-t border-industrial-800 flex items-center justify-between text-xs font-mono text-industrial-400">
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <div>
-            Showing <span className="text-white font-bold">{inspections.length}</span> of{' '}
-            <span className="text-white font-bold">{total}</span> records
+            Showing <strong className="text-slate-700">{inspections.length}</strong> of <strong className="text-slate-700">{total}</strong> records
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="p-1 rounded bg-industrial-850 hover:bg-industrial-800 disabled:opacity-40 transition-colors"
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2">
-              Page <span className="text-cyan-400">{page}</span> of {totalPages}
+            <span className="font-semibold text-slate-700 px-2 font-mono">
+              {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="p-1 rounded bg-industrial-850 hover:bg-industrial-800 disabled:opacity-40 transition-colors"
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -222,35 +228,33 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
         </div>
       </div>
 
-      {/* Inspection Detail Modal */}
+      {/* Detail Inspection Modal Dialog */}
       {activeModalId && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-industrial-900 border border-industrial-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full border border-slate-100 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-industrial-850 border-b border-industrial-800 flex items-center justify-between">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-base font-bold text-white font-mono">
-                    {modalData?.inspection_code || `Inspection #${activeModalId}`}
-                  </h3>
-                  {modalData && (
-                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                      modalData.status === 'PASS' 
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' 
-                        : 'bg-red-500/20 text-red-400 border border-red-500/40'
-                    }`}>
-                      {modalData.status}
-                    </span>
-                  )}
+            <div className="h-16 px-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center space-x-3">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white text-xs ${
+                  modalData?.status === 'PASS' ? 'bg-emerald-500' : 'bg-rose-600'
+                }`}>
+                  {modalData?.status || '...'}
                 </div>
-                <p className="text-xs text-industrial-400 font-mono mt-0.5">
-                  Timestamp: {modalData ? new Date(modalData.timestamp).toLocaleString() : ''}
-                </p>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm font-sans">
+                    Inspection Detail: <span className="text-blue-600 font-mono">{modalData?.inspection_code || activeModalId}</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Timestamp: {modalData?.timestamp ? new Date(modalData.timestamp).toLocaleString() : '—'}
+                  </p>
+                </div>
               </div>
-
               <button
-                onClick={() => { setActiveModalId(null); if (onCloseModal) onCloseModal(); }}
-                className="p-1.5 rounded-lg bg-industrial-800 text-industrial-400 hover:text-white transition-colors"
+                onClick={() => {
+                  setActiveModalId(null);
+                  if (onCloseModal) onCloseModal();
+                }}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -259,89 +263,117 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-6">
               {modalLoading ? (
-                <div className="py-12 text-center text-xs font-mono text-industrial-400">
-                  Loading inspection records and bounding boxes...
+                <div className="py-20 text-center text-slate-400">
+                  <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+                  <p className="text-xs">Loading inspection telemetry...</p>
                 </div>
               ) : modalData ? (
                 <>
-                  {/* Image Display or Retention Notice */}
-                  <div className="bg-black border border-industrial-800 rounded-xl overflow-hidden aspect-video relative flex items-center justify-center">
-                    {modalData.processing_status === 'IMAGE_EXPIRED' ? (
-                      <div className="p-8 text-center">
-                        <ImageOff className="w-12 h-12 text-industrial-600 mx-auto mb-3" />
-                        <h4 className="text-sm font-semibold text-industrial-300 font-mono">
-                          Image Expired (&gt;100s Rolling Retention)
-                        </h4>
-                        <p className="text-xs text-industrial-500 max-w-md mt-1 font-mono">
-                          As per the 100-second image retention policy, the physical image file was pruned from disk to preserve local storage. Full text metadata, telemetry, and bounding box coordinates remain permanently stored in SQLite.
-                        </p>
+                  {/* Image Preview & Buffer Status */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Raw Capture View */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                        Original Capture
+                      </span>
+                      <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative flex items-center justify-center border border-slate-200">
+                        {modalData.image_url ? (
+                          <img
+                            src={modalData.image_url}
+                            alt="Original Capture"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-center p-4 text-slate-400">
+                            <ImageOff className="w-8 h-8 mx-auto mb-1 text-slate-500" />
+                            <p className="text-xs font-semibold">Image File Expired</p>
+                            <p className="text-[10px] text-slate-500">Deleted by 100s retention buffer</p>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <img
-                        src={`/api/images/${modalData.annotated_image_filename}`}
-                        alt="Inspection Annotated Frame"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    )}
+                    </div>
+
+                    {/* Annotated Result View */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                        YOLO11n Defect Overlay
+                      </span>
+                      <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative flex items-center justify-center border border-slate-200">
+                        {modalData.annotated_image_url ? (
+                          <img
+                            src={modalData.annotated_image_url}
+                            alt="Annotated Inspection"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-center p-4 text-slate-400">
+                            <ImageOff className="w-8 h-8 mx-auto mb-1 text-slate-500" />
+                            <p className="text-xs font-semibold">Annotated Image Expired</p>
+                            <p className="text-[10px] text-slate-500">Deleted by 100s retention buffer</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Telemetry Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-                    <div className="bg-industrial-950 p-3 rounded-lg border border-industrial-800">
-                      <span className="text-industrial-500 block">Defects Count</span>
-                      <span className="text-white font-bold text-base">{modalData.defect_count}</span>
+                  {/* Summary Metric Chips */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-slate-400 block text-[11px]">DECISION</span>
+                      <strong className={`text-sm ${modalData.status === 'PASS' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {modalData.status}
+                      </strong>
                     </div>
-                    <div className="bg-industrial-950 p-3 rounded-lg border border-industrial-800">
-                      <span className="text-industrial-500 block">Inference Latency</span>
-                      <span className="text-cyan-400 font-bold text-base">{modalData.inference_time_ms.toFixed(1)} ms</span>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-slate-400 block text-[11px]">DEFECT COUNT</span>
+                      <strong className="text-sm text-slate-800">{modalData.defect_count}</strong>
                     </div>
-                    <div className="bg-industrial-950 p-3 rounded-lg border border-industrial-800">
-                      <span className="text-industrial-500 block">Camera Source</span>
-                      <span className="text-industrial-300 truncate block text-xs">{modalData.camera_source}</span>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-slate-400 block text-[11px]">INFERENCE TIME</span>
+                      <strong className="text-sm text-blue-600 font-mono">{modalData.inference_time_ms.toFixed(1)} ms</strong>
                     </div>
-                    <div className="bg-industrial-950 p-3 rounded-lg border border-industrial-800">
-                      <span className="text-industrial-500 block">Database Status</span>
-                      <span className="text-emerald-400 font-bold text-xs">PERSISTENT RECORD</span>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-slate-400 block text-[11px]">DISK BUFFER</span>
+                      <strong className="text-sm text-slate-700 font-mono">{modalData.processing_status}</strong>
                     </div>
                   </div>
 
                   {/* Defect Detections Table */}
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-industrial-300 font-mono mb-2">
-                      Detected Bounding Boxes ({modalData.detections?.length || 0})
+                    <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                      Detected Anomaly Regions ({modalData.detections?.length || 0})
                     </h4>
                     {modalData.detections && modalData.detections.length > 0 ? (
-                      <div className="border border-industrial-800 rounded-lg overflow-hidden">
-                        <table className="w-full text-left text-xs font-mono">
-                          <thead className="bg-industrial-950 text-industrial-400">
+                      <div className="overflow-x-auto border border-slate-200/80 rounded-xl">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200/80">
                             <tr>
-                              <th className="py-2 px-3">Class</th>
-                              <th className="py-2 px-3">Confidence</th>
-                              <th className="py-2 px-3">Box [X1, Y1, X2, Y2]</th>
-                              <th className="py-2 px-3">Dimensions</th>
+                              <th className="py-2.5 px-4">#</th>
+                              <th className="py-2.5 px-4">Class</th>
+                              <th className="py-2.5 px-4">Confidence</th>
+                              <th className="py-2.5 px-4">Bounding Box</th>
+                              <th className="py-2.5 px-4">Dimensions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-industrial-800">
+                          <tbody className="divide-y divide-slate-100">
                             {modalData.detections.map((det, idx) => (
-                              <tr key={idx}>
-                                <td className="py-2 px-3 text-amber-400 font-bold">{det.class_name}</td>
-                                <td className="py-2 px-3 text-white">{(det.confidence * 100).toFixed(1)}%</td>
-                                <td className="py-2 px-3 text-industrial-300">
-                                  [{det.x1}, {det.y1}, {det.x2}, {det.y2}]
+                              <tr key={idx} className="hover:bg-slate-50">
+                                <td className="py-2.5 px-4 text-slate-400">{idx + 1}</td>
+                                <td className="py-2.5 px-4 font-bold text-amber-600">{det.class_name}</td>
+                                <td className="py-2.5 px-4 font-mono font-bold text-slate-800">
+                                  {det.confidence_pct || `${(det.confidence * 100).toFixed(1)}%`}
                                 </td>
-                                <td className="py-2 px-3 text-industrial-400">
-                                  {det.x2 - det.x1} x {det.y2 - det.y1} px
-                                </td>
+                                <td className="py-2.5 px-4 font-mono text-slate-600">[{det.x1}, {det.y1}, {det.x2}, {det.y2}]</td>
+                                <td className="py-2.5 px-4 font-mono text-slate-500">{det.width} x {det.height} px</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
                     ) : (
-                      <p className="text-xs text-industrial-500 font-mono">No defects detected in this frame.</p>
+                      <p className="text-xs text-slate-400 bg-slate-50 p-4 rounded-xl text-center">
+                        No surface defects detected in this inspection cycle.
+                      </p>
                     )}
                   </div>
                 </>

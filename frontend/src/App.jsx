@@ -165,7 +165,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-industrial-950 font-sans">
+    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
       {/* Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -175,7 +175,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
         {/* Top Header */}
         <TopHeader
           cameraStatus={cameraStatus}
@@ -187,7 +187,7 @@ export default function App() {
         />
 
         {/* Tab Page Router */}
-        <main className="flex-1 overflow-y-auto p-6 bg-grid-pattern">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-grid-pattern">
           {activeTab === 'dashboard' && (
             <DashboardOverview
               analytics={analytics}

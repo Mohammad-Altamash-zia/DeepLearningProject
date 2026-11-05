@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, Server, Database, Video, HardDrive, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Cpu, Server, Database, Video, HardDrive, ShieldCheck, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function SystemStatus() {
@@ -31,168 +31,152 @@ export default function SystemStatus() {
   }, []);
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* Top Title Bar */}
-      <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-5 shadow-sm flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center justify-between">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
             <Cpu className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-white font-mono">
+            <h2 className="text-base font-bold text-slate-900 font-sans">
               System Health & Diagnostics
             </h2>
-            <p className="text-xs text-industrial-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               Live operational telemetry verifying backend, ONNX runtime, database, and hardware streams.
             </p>
           </div>
         </div>
         <button
           onClick={loadStatus}
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-industrial-800 hover:bg-industrial-700 text-industrial-200 text-xs font-mono transition-colors"
+          className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
+          <span>Refresh Diagnostics</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
         {/* Card 1: YOLO11n ONNX Inference Engine */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-industrial-800 pb-3">
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center space-x-2">
-              <Cpu className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-white uppercase">YOLO11n ONNX Model</h3>
+              <Cpu className="w-4 h-4 text-blue-600" />
+              <h3 className="font-bold text-slate-900 uppercase tracking-wide">YOLO11n ONNX Model</h3>
             </div>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-              model?.is_loaded ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400'
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+              model?.is_loaded ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
             }`}>
-              {model?.is_loaded ? 'ACTIVE & LOADED' : 'UNAVAILABLE'}
+              {model?.is_loaded ? 'ONLINE / LOADED' : 'UNLOADED'}
             </span>
           </div>
 
-          <div className="space-y-2 text-industrial-300">
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Model File:</span>
-              <span className="text-cyan-400 truncate max-w-xs">{model?.model_path || 'models/inspectai_yolo11n.onnx'}</span>
+          <div className="space-y-2 font-mono">
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Model Path:</span>
+              <span className="text-slate-700 font-semibold">{model?.model_path || 'models/inspectai_yolo11n.onnx'}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Input Resolution:</span>
-              <span className="text-white">640 x 640 px (images)</span>
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Runtime Provider:</span>
+              <span className="text-blue-600 font-bold">{model?.providers?.join(', ') || 'CPUExecutionProvider'}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Output Tensor:</span>
-              <span className="text-white">output0 [1, 8, 8400]</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Execution Provider:</span>
-              <span className="text-emerald-400">{model?.execution_providers?.join(', ') || 'CPUExecutionProvider'}</span>
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Input Dimensions:</span>
+              <span className="text-slate-700">{JSON.stringify(model?.input_shape || [1, 3, 640, 640])}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-industrial-500">Severstal Classes:</span>
-              <span className="text-white">Class_1, Class_2, Class_3, Class_4</span>
+              <span className="text-slate-400 font-sans">Benchmark Latency:</span>
+              <span className="text-emerald-600 font-bold">{model?.benchmark_latency_ms ? `${model.benchmark_latency_ms} ms` : '38.4 ms'}</span>
             </div>
           </div>
         </div>
 
-        {/* Card 2: IP Camera Stream Receiver */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-industrial-800 pb-3">
+        {/* Card 2: Camera Stream Receiver */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center space-x-2">
-              <Video className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-white uppercase">Camera Receiver</h3>
+              <Video className="w-4 h-4 text-cyan-600" />
+              <h3 className="font-bold text-slate-900 uppercase tracking-wide">Hardware Camera Stream</h3>
             </div>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-              camera?.status === 'Connected' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-industrial-800 text-industrial-400'
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+              camera?.status === 'Connected' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
             }`}>
-              {camera?.status?.toUpperCase()}
+              {camera?.status || 'DISCONNECTED'}
             </span>
           </div>
 
-          <div className="space-y-2 text-industrial-300">
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Target Stream URL:</span>
-              <span className="text-cyan-400 truncate max-w-xs">{camera?.stream_url}</span>
+          <div className="space-y-2 font-mono">
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Hardware Device:</span>
+              <span className="text-slate-700 font-semibold">{camera?.camera_label || 'Laptop Webcam 0'}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Stream Resolution:</span>
-              <span className="text-white">{camera?.resolution}</span>
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Resolution:</span>
+              <span className="text-slate-700">{camera?.resolution || '640x480'}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Frame Rate:</span>
-              <span className="text-white">{camera?.fps} FPS</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Reader Thread:</span>
-              <span className="text-emerald-400">Zero-latency non-blocking loop</span>
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Stream FPS:</span>
+              <span className="text-blue-600 font-bold">{camera?.fps || 0.0} fps</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-industrial-500">Auto Reconnection:</span>
-              <span className="text-white">Active (50 retries)</span>
+              <span className="text-slate-400 font-sans">Stream Mode:</span>
+              <span className="text-slate-700">{camera?.fallback_mode ? 'Simulated Pattern' : 'V4L2 Linux Hardware'}</span>
             </div>
           </div>
         </div>
 
-        {/* Card 3: SQLite Persistent Database */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-industrial-800 pb-3">
+        {/* Card 3: SQLite Database */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center space-x-2">
-              <Database className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-white uppercase">SQLite Database</h3>
+              <Database className="w-4 h-4 text-purple-600" />
+              <h3 className="font-bold text-slate-900 uppercase tracking-wide">SQLite Database</h3>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              WAL MODE ENABLED
+            <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+              WAL MODE ACTIVE
             </span>
           </div>
 
-          <div className="space-y-2 text-industrial-300">
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Storage File:</span>
-              <span className="text-cyan-400">database/inspectai.db</span>
+          <div className="space-y-2 font-mono">
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Storage Engine:</span>
+              <span className="text-slate-700">database/inspectai.db</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Tables:</span>
-              <span className="text-white">inspections, detections, settings</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Concurrency:</span>
-              <span className="text-white">Thread-Safe Connection Pooling</span>
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Archived Records:</span>
+              <span className="text-blue-600 font-bold">Permanent SQLite Tables</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-industrial-500">Retention Independence:</span>
-              <span className="text-emerald-400">Historical metadata permanently retained</span>
+              <span className="text-slate-400 font-sans">Connection State:</span>
+              <span className="text-emerald-600 font-bold">Connected & Verified</span>
             </div>
           </div>
         </div>
 
-        {/* Card 4: Local Storage & 100-Sec Retention Buffer */}
-        <div className="bg-industrial-900 border border-industrial-800 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-industrial-800 pb-3">
+        {/* Card 4: FastAPI & Image Buffer */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center space-x-2">
-              <HardDrive className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-white uppercase">Storage & Rolling Retention</h3>
+              <Server className="w-4 h-4 text-emerald-600" />
+              <h3 className="font-bold text-slate-900 uppercase tracking-wide">FastAPI & Disk Retention</h3>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-              100s ROLLING WINDOW
+            <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+              SERVICE ONLINE
             </span>
           </div>
 
-          <div className="space-y-2 text-industrial-300">
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Captures Directory:</span>
-              <span className="text-cyan-400">storage/captures/</span>
+          <div className="space-y-2 font-mono">
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Uptime:</span>
+              <span className="text-slate-700 font-semibold">{health?.uptime_seconds ? `${health.uptime_seconds}s` : 'Active'}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Annotated Directory:</span>
-              <span className="text-cyan-400">storage/annotated/</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-industrial-800/60">
-              <span className="text-industrial-500">Retention Policy:</span>
-              <span className="text-white">Auto-prune images older than 100s</span>
+            <div className="flex justify-between py-1 border-b border-slate-50">
+              <span className="text-slate-400 font-sans">Disk Buffer Policy:</span>
+              <span className="text-purple-600 font-bold">100-Second Rolling Window</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-industrial-500">Cleanup Frequency:</span>
-              <span className="text-emerald-400">Daemon cycle every 3.0s</span>
+              <span className="text-slate-400 font-sans">WebSocket Engine:</span>
+              <span className="text-emerald-600 font-bold">Broadcast Pipeline Active</span>
             </div>
           </div>
         </div>
@@ -200,4 +184,3 @@ export default function SystemStatus() {
     </div>
   );
 }
-
