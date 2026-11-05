@@ -7,6 +7,11 @@
     background-color: #F8FAFC;
     color: #1E293B;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .dark body {
+    background-color: #090D16;
+    color: #F1F5F9;
   }
 }
 
@@ -18,18 +23,52 @@
 ::-webkit-scrollbar-track {
   background: #F1F5F9;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 9999px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #1E293B;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }
 
 /* Soft grid pattern */
 .bg-grid-pattern {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
+    linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+}
+.dark .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Squircle Superellipse Curvature Utilities */
+.squircle-card {
+  border-radius: 24px;
+}
+.squircle-card-lg {
+  border-radius: 28px;
+}
+.squircle-btn {
+  border-radius: 14px;
+}
+.squircle-input {
+  border-radius: 16px;
+}
+.squircle-badge {
+  border-radius: 12px;
+}
+.squircle-icon {
+  border-radius: 16px;
 }

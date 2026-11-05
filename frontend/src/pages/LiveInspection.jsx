@@ -107,19 +107,19 @@ export default function LiveInspection({
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Hardware Stream & Control Action Bar */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-squircle-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4 transition-colors">
         {/* Left Side: Hardware Camera & Upload Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Webcam Device Selector */}
-          <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80">
-            <Camera className="w-4 h-4 text-slate-500" />
+          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-squircle border border-slate-200/80 dark:border-slate-700">
+            <Camera className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <select
               value={selectedDevice}
               onChange={(e) => setSelectedDevice(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
             >
               {devices.map((dev) => (
-                <option key={dev.index} value={String(dev.index)}>
+                <option key={dev.index} value={String(dev.index)} className="dark:bg-slate-900">
                   {dev.label}
                 </option>
               ))}
@@ -129,7 +129,7 @@ export default function LiveInspection({
           {cameraStatus === 'Connected' ? (
             <button
               onClick={onDisconnectCamera}
-              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-all text-xs font-semibold"
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-squircle bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 transition-all text-xs font-semibold"
             >
               <VideoOff className="w-3.5 h-3.5" />
               <span>Turn Off Webcam</span>
@@ -137,7 +137,7 @@ export default function LiveInspection({
           ) : (
             <button
               onClick={() => onConnectCamera(selectedDevice)}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all text-xs font-semibold"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-squircle bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-sm transition-all text-xs font-semibold"
             >
               <Video className="w-3.5 h-3.5" />
               <span>Turn On Laptop Webcam</span>
@@ -147,7 +147,7 @@ export default function LiveInspection({
           <button
             onClick={() => api.enableFallbackCamera()}
             title="Use synthetic steel surface simulation if webcam is in use by another app"
-            className="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-all text-xs font-medium"
+            className="px-3 py-2 rounded-squircle bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-xs font-medium"
           >
             Simulate Feed
           </button>
@@ -163,29 +163,29 @@ export default function LiveInspection({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100/80 transition-all text-xs font-semibold shadow-sm cursor-pointer"
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-squircle bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 hover:bg-indigo-100/80 transition-all text-xs font-semibold shadow-sm cursor-pointer"
             title="Upload an image from your PC to inspect for defects"
           >
-            <Upload className={`w-3.5 h-3.5 text-indigo-600 ${isUploading ? 'animate-bounce' : ''}`} />
+            <Upload className={`w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 ${isUploading ? 'animate-bounce' : ''}`} />
             <span>{isUploading ? 'Inspecting...' : 'Upload Image'}</span>
           </button>
         </div>
 
         {/* Right Side: Live Inspection Start/Stop & Manual Test Button */}
         <div className="flex items-center space-x-3">
-          <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200/80 space-x-1">
+          <div className="flex items-center bg-slate-50 dark:bg-slate-800/80 p-1 rounded-squircle border border-slate-200/80 dark:border-slate-700 space-x-1">
             <select
               value={testMode}
               onChange={(e) => setTestMode(e.target.value)}
-              className="bg-transparent text-xs font-medium text-slate-600 focus:outline-none px-2 py-1 cursor-pointer"
+              className="bg-transparent text-xs font-medium text-slate-600 dark:text-slate-300 focus:outline-none px-2 py-1 cursor-pointer"
             >
-              <option value="defect">Sample Defect Strip</option>
-              <option value="clean">Sample Clean Strip</option>
+              <option value="defect" className="dark:bg-slate-900">Sample Defect Strip</option>
+              <option value="clean" className="dark:bg-slate-900">Sample Clean Strip</option>
             </select>
             <button
               onClick={handleTestFrame}
               disabled={isTesting}
-              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shadow-sm border border-slate-200/60 transition-all flex items-center space-x-1"
+              className="px-3 py-1.5 rounded-squircle-xs bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-sm border border-slate-200/60 dark:border-slate-600 transition-all flex items-center space-x-1"
             >
               <Zap className={`w-3.5 h-3.5 text-amber-500 ${isTesting ? 'animate-spin' : ''}`} />
               <span>Test Frame</span>
@@ -195,7 +195,7 @@ export default function LiveInspection({
           {isInspecting ? (
             <button
               onClick={onStopInspection}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/30 transition-all text-xs font-bold uppercase tracking-wider"
+              className="flex items-center space-x-2 px-5 py-2.5 rounded-squircle bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/30 transition-all text-xs font-bold uppercase tracking-wider"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
               <span>Stop Inspection</span>
@@ -203,7 +203,7 @@ export default function LiveInspection({
           ) : (
             <button
               onClick={onStartInspection}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30 transition-all text-xs font-bold uppercase tracking-wider"
+              className="flex items-center space-x-2 px-5 py-2.5 rounded-squircle bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30 transition-all text-xs font-bold uppercase tracking-wider"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Start 1s Inspection</span>
@@ -214,25 +214,25 @@ export default function LiveInspection({
 
       {/* Upload Notification Banner */}
       {uploadSuccessMsg && (
-        <div className="bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-2xl px-5 py-3 text-xs font-medium flex items-center justify-between shadow-sm">
+        <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 rounded-squircle-xl px-5 py-3 text-xs font-medium flex items-center justify-between shadow-sm">
           <div className="flex items-center space-x-2.5">
-            <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+            <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>{uploadSuccessMsg} — Processed with YOLO11n ONNX</span>
           </div>
-          <span className="text-indigo-600 font-bold bg-indigo-100 px-2 py-0.5 rounded-full text-[10px]">
+          <span className="text-indigo-600 dark:text-indigo-300 font-bold bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 rounded-full text-[10px]">
             INSPECTION COMPLETE
           </span>
         </div>
       )}
 
       {/* 2. Executive Inspection Status Banner */}
-      <div className={`border rounded-2xl p-5 shadow-sm transition-all flex flex-wrap items-center justify-between gap-4 ${
+      <div className={`border rounded-squircle-xl p-5 shadow-sm transition-all flex flex-wrap items-center justify-between gap-4 ${
         status === 'PASS' 
-          ? 'bg-emerald-50/80 border-emerald-200/80 text-emerald-950' 
-          : 'bg-rose-50/80 border-rose-200/80 text-rose-950'
+          ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200/80 dark:border-emerald-800/40 text-emerald-950 dark:text-emerald-100' 
+          : 'bg-rose-50/80 dark:bg-rose-950/30 border-rose-200/80 dark:border-rose-800/40 text-rose-950 dark:text-rose-100'
       }`}>
         <div className="flex items-center space-x-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl tracking-widest text-white shadow-md ${
+          <div className={`w-14 h-14 rounded-squircle-lg flex items-center justify-center font-black text-2xl tracking-widest text-white shadow-md ${
             status === 'PASS' 
               ? 'bg-emerald-500 shadow-emerald-500/25' 
               : 'bg-rose-600 shadow-rose-600/25 animate-pulse'
@@ -241,26 +241,26 @@ export default function LiveInspection({
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-base font-extrabold tracking-tight text-slate-900">
+              <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
                 {status === 'PASS' ? 'INSPECTION PASSED — NO CRITICAL DEFECTS' : `INSPECTION FAILED — ${defectCount} DEFECT(S) DETECTED`}
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Code: <span className="font-mono text-slate-700 font-semibold">{code}</span> | Timestamp: {timestamp} | Latency: <span className="font-mono text-slate-900 font-bold">{latency}ms</span>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+              Code: <span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">{code}</span> | Timestamp: {timestamp} | Latency: <span className="font-mono text-slate-900 dark:text-white font-bold">{latency}ms</span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-6 text-xs">
           <div className="text-right">
-            <div className="text-slate-400 font-medium">Severstal Classes Flagged</div>
-            <div className="text-sm font-bold text-slate-900 mt-0.5">
+            <div className="text-slate-400 dark:text-slate-500 font-medium">Severstal Classes Flagged</div>
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
               {detections.length > 0 ? Array.from(new Set(detections.map(d => d.class_name))).join(', ') : 'None (Clean)'}
             </div>
           </div>
-          <div className="text-right border-l border-slate-200/80 pl-6">
-            <div className="text-slate-400 font-medium">Max Confidence</div>
-            <div className="text-sm font-bold text-blue-600 mt-0.5">
+          <div className="text-right border-l border-slate-200/80 dark:border-slate-800 pl-6">
+            <div className="text-slate-400 dark:text-slate-500 font-medium">Max Confidence</div>
+            <div className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-0.5">
               {detections.length > 0 ? `${(Math.max(...detections.map(d => d.confidence)) * 100).toFixed(1)}%` : '0.0%'}
             </div>
           </div>
@@ -270,30 +270,30 @@ export default function LiveInspection({
       {/* 3. Live Feeds: Laptop Camera Stream & AI Annotated Frame Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Live Laptop Camera Stream */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-squircle-xl p-5 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
+              <div className="w-8 h-8 rounded-squircle bg-cyan-50 dark:bg-cyan-950/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
                 <Camera className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-bold text-slate-900 text-sm block">Live Laptop Camera</span>
-                <span className="text-xs text-slate-400 block font-normal">Real-time hardware video stream</span>
+                <span className="font-bold text-slate-900 dark:text-white text-sm block">Live Laptop Camera</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 block font-normal">Real-time hardware video stream</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setStreamKey(Date.now())}
                 title="Refresh Camera Video Stream"
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors flex items-center space-x-1 text-[11px] font-medium"
+                className="px-2.5 py-1 rounded-squircle-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1 text-[11px] font-medium"
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Refresh</span>
               </button>
               <div className={`flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                 cameraStatus === 'Connected'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-slate-100 text-slate-500 border-slate-200'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
               }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${cameraStatus === 'Connected' ? 'bg-emerald-500 animate-ping' : 'bg-slate-400'}`} />
                 <span>{cameraStatus.toUpperCase()}</span>
@@ -301,7 +301,7 @@ export default function LiveInspection({
             </div>
           </div>
 
-          <div className="relative aspect-video bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
+          <div className="relative aspect-video bg-slate-950 rounded-squircle-lg overflow-hidden flex items-center justify-center shadow-inner">
             <img
               key={streamKey}
               src={`/api/camera/stream?t=${streamKey}`}
@@ -318,35 +318,35 @@ export default function LiveInspection({
                 </p>
               </div>
             )}
-            <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-black/60 backdrop-blur rounded-lg text-[10px] font-mono text-cyan-300 border border-white/10">
+            <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-black/60 backdrop-blur rounded-squircle-xs text-[10px] font-mono text-cyan-300 border border-white/10">
               BUILT-IN WEBCAM STREAM
             </div>
           </div>
         </div>
 
         {/* Latest AI Annotated Frame */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-squircle-xl p-5 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <div className="w-8 h-8 rounded-squircle bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <Crosshair className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-bold text-slate-900 text-sm block">Latest AI Annotated Inspection</span>
-                <span className="text-xs text-slate-400 block font-normal">YOLO11n defect bounding box overlay</span>
+                <span className="font-bold text-slate-900 dark:text-white text-sm block">Latest AI Annotated Inspection</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 block font-normal">YOLO11n defect bounding box overlay</span>
               </div>
             </div>
             <div className="flex items-center space-x-2 text-xs">
-              <span className="font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+              <span className="font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full">
                 YOLO11n-ONNX
               </span>
-              <span className="font-mono text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-full">
+              <span className="font-mono text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
                 {latency}ms
               </span>
             </div>
           </div>
 
-          <div className="relative aspect-video bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
+          <div className="relative aspect-video bg-slate-950 rounded-squircle-lg overflow-hidden flex items-center justify-center shadow-inner">
             {latestInspection?.annotated_image_url ? (
               <img
                 src={`${latestInspection.annotated_image_url}?t=${annotatedKey}`}
@@ -360,10 +360,10 @@ export default function LiveInspection({
                 className="w-full h-full object-contain"
               />
             )}
-            <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-black/60 backdrop-blur rounded-lg text-[10px] font-mono text-emerald-300 border border-white/10">
+            <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-black/60 backdrop-blur rounded-squircle-xs text-[10px] font-mono text-emerald-300 border border-white/10">
               YOLO11n DEFECT OVERLAY
             </div>
-            <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 bg-black/60 backdrop-blur rounded-lg text-[10px] font-mono text-slate-300 border border-white/10">
+            <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 bg-black/60 backdrop-blur rounded-squircle-xs text-[10px] font-mono text-slate-300 border border-white/10">
               100s Rolling Retention
             </div>
           </div>
@@ -371,22 +371,22 @@ export default function LiveInspection({
       </div>
 
       {/* 4. Structured Defect Detection Details Table */}
-      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-        <div className="h-14 px-6 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-squircle-xl overflow-hidden shadow-sm transition-colors">
+        <div className="h-14 px-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+            <div className="w-8 h-8 rounded-squircle bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-sm font-bold text-slate-900 block font-sans">
+              <span className="text-sm font-bold text-slate-900 dark:text-white block font-sans">
                 Defect Telemetry ({detections.length} Flagged)
               </span>
-              <span className="text-xs text-slate-400 block font-normal">
-                Inspection ID: <strong className="font-mono text-slate-700">{latestInspection?.id || '—'}</strong>
+              <span className="text-xs text-slate-400 dark:text-slate-500 block font-normal">
+                Inspection ID: <strong className="font-mono text-slate-700 dark:text-slate-300">{latestInspection?.id || '—'}</strong>
               </span>
             </div>
           </div>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-100 dark:border-slate-700">
             Severstal Standard Benchmark
           </span>
         </div>
@@ -394,15 +394,15 @@ export default function LiveInspection({
         {detections.length === 0 ? (
           <div className="p-10 text-center">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2.5" />
-            <h4 className="text-sm font-bold text-slate-800">Surface Clean — No Defects Detected</h4>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Surface Clean — No Defects Detected</h4>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
               All defect predictions are below the configured confidence threshold. Production sample meets quality specifications.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-100">
+              <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-slate-800">
                 <tr>
                   <th className="py-3 px-6">#</th>
                   <th className="py-3 px-6">Defect Class</th>
@@ -412,26 +412,26 @@ export default function LiveInspection({
                   <th className="py-3 px-6">Quality Gating Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {detections.map((det, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3.5 px-6 font-mono text-slate-400 font-semibold">{idx + 1}</td>
+                  <tr key={idx} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="py-3.5 px-6 font-mono text-slate-400 dark:text-slate-500 font-semibold">{idx + 1}</td>
                     <td className="py-3.5 px-6">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
                         {det.class_name}
                       </span>
                     </td>
-                    <td className="py-3.5 px-6 font-mono font-bold text-slate-900">
+                    <td className="py-3.5 px-6 font-mono font-bold text-slate-900 dark:text-white">
                       {det.confidence_pct || `${(det.confidence * 100).toFixed(1)}%`}
                     </td>
-                    <td className="py-3.5 px-6 font-mono text-slate-600">
+                    <td className="py-3.5 px-6 font-mono text-slate-600 dark:text-slate-300">
                       [{det.x1}, {det.y1}, {det.x2}, {det.y2}]
                     </td>
-                    <td className="py-3.5 px-6 font-mono text-slate-500">
+                    <td className="py-3.5 px-6 font-mono text-slate-500 dark:text-slate-400">
                       {det.width || (det.x2 - det.x1)} x {det.height || (det.y2 - det.y1)} px
                     </td>
                     <td className="py-3.5 px-6">
-                      <span className="text-rose-600 font-semibold flex items-center space-x-1.5">
+                      <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center space-x-1.5">
                         <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
                         <span>REJECT / TRIM CORRECTION</span>
                       </span>

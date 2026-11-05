@@ -22,6 +22,24 @@ export default function App() {
   const [inspectionTelemetry, setInspectionTelemetry] = useState(null);
   const [systemHealth, setSystemHealth] = useState(null);
   const [selectedInspectionId, setSelectedInspectionId] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('inspectai_theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Synchronize dark mode class on <html>
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('inspectai_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('inspectai_theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
 
   // Initial Data Fetch
   const refreshAllData = async () => {
@@ -165,17 +183,18 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200">
       {/* Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         cameraStatus={cameraStatus}
         isInspecting={isInspecting}
+        isDarkMode={isDarkMode}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 dark:bg-slate-950">
         {/* Top Header */}
         <TopHeader
           cameraStatus={cameraStatus}
@@ -184,6 +203,8 @@ export default function App() {
           onStartInspection={handleStartInspection}
           onStopInspection={handleStopInspection}
           systemHealth={systemHealth}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
         />
 
         {/* Tab Page Router */}

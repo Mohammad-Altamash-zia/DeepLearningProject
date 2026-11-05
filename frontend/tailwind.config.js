@@ -7,6 +7,15 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      borderRadius: {
+        'squircle-xs': '8px',
+        'squircle-sm': '12px',
+        'squircle': '16px',
+        'squircle-md': '18px',
+        'squircle-lg': '22px',
+        'squircle-xl': '26px',
+        'squircle-2xl': '30px',
+      },
       colors: {
         industrial: {
           950: '#070A10', // Deepest background
@@ -38,4 +47,3 @@ export default {
   },
   plugins: [],
 }
-
