@@ -151,14 +151,18 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 # Mount Static Frontend Distribution if built
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from backend.config import PROJECT_DIR
 
 frontend_dist = PROJECT_DIR / "frontend" / "dist"
 if (frontend_dist / "index.html").exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
 
-    @app.get("/{full_path:path}", include_in_schema=False)
+    @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+    async def serve_root():
+        return FileResponse(str(frontend_dist / "index.html"))
+
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"], include_in_schema=False)
     async def serve_spa(full_path: str):
         if full_path.startswith("api") or full_path.startswith("ws"):
             return JSONResponse(status_code=404, content={"detail": "Not found"})

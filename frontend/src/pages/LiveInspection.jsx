@@ -470,10 +470,10 @@ export default function LiveInspection({
                       </span>
                     </td>
                     <td className="py-3.5 px-6 font-mono text-charcoal-800 dark:text-warm-200 font-bold">
-                      {(det.confidence * 100).toFixed(1)}%
+                      {((Number(det.confidence) || 0) * 100).toFixed(1)}%
                     </td>
                     <td className="py-3.5 px-6 font-mono text-charcoal-500 dark:text-darkwarm-text-muted text-[11px]">
-                      [{det.bbox.map(b => Math.round(b)).join(', ')}]
+                      [{(Array.isArray(det.bbox) ? det.bbox : [det.x1, det.y1, det.x2, det.y2]).filter(n => n !== undefined).map(b => Math.round(Number(b) || 0)).join(', ') || '-'}]
                     </td>
                     <td className="py-3.5 px-6">
                       <span className="pill-badge px-2.5 py-0.5 bg-earth-terracotta text-white font-bold text-[10px] uppercase">

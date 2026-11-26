@@ -229,7 +229,7 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
                         </span>
 
                         <span className="font-mono text-[11px] text-charcoal-500 dark:text-darkwarm-text-muted">
-                          {item.inference_time_ms.toFixed(1)} ms
+                          {Number(item.inference_time_ms || 0).toFixed(1)} ms
                         </span>
                       </div>
 
@@ -295,7 +295,7 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-charcoal-900 dark:text-warm-100 font-bold">{item.defect_count}</td>
-                      <td className="py-3.5 px-4 font-mono text-charcoal-600 dark:text-darkwarm-text-muted">{item.inference_time_ms.toFixed(1)} ms</td>
+                      <td className="py-3.5 px-4 font-mono text-charcoal-600 dark:text-darkwarm-text-muted">{Number(item.inference_time_ms || 0).toFixed(1)} ms</td>
                       <td className="py-3.5 px-4">
                         <span className="pill-badge px-2 py-0.5 text-[10px] font-mono font-semibold bg-warm-100 dark:bg-darkwarm-surface text-charcoal-600 dark:text-darkwarm-text-muted">
                           {item.processing_status === 'IMAGE_EXPIRED' ? 'EXPIRED' : 'DISK SAVED'}
@@ -427,7 +427,7 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
                   <div className="bg-warm-50 dark:bg-darkwarm-surface p-3.5 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border">
                     <span className="text-charcoal-400 block text-[10px] uppercase font-semibold">Inference Latency</span>
                     <span className="font-bold font-mono text-charcoal-900 dark:text-warm-100 mt-1 block text-sm">
-                      {modalData.inference_time_ms.toFixed(1)} ms
+                      {Number(modalData.inference_time_ms || 0).toFixed(1)} ms
                     </span>
                   </div>
                   <div className="bg-warm-50 dark:bg-darkwarm-surface p-3.5 rounded-2xl border border-warm-200/70 dark:border-darkwarm-border">
@@ -455,10 +455,10 @@ export default function InspectionHistory({ selectedInspectionId, onCloseModal }
                               {i + 1}
                             </span>
                             <span className="font-bold text-earth-terracotta">{d.class_name}</span>
-                            <span className="font-mono text-charcoal-500">[{d.bbox.map(b => Math.round(b)).join(', ')}]</span>
+                            <span className="font-mono text-charcoal-500">[{(Array.isArray(d.bbox) ? d.bbox : [d.x1, d.y1, d.x2, d.y2]).filter(n => n !== undefined).map(b => Math.round(Number(b) || 0)).join(', ') || '-'}]</span>
                           </div>
                           <span className="font-mono font-bold text-charcoal-800 dark:text-warm-100">
-                            {(d.confidence * 100).toFixed(1)}% confidence
+                            {((Number(d.confidence) || 0) * 100).toFixed(1)}% confidence
                           </span>
                         </div>
                       ))}

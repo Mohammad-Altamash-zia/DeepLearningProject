@@ -110,7 +110,7 @@ export default function MetricCards({ analytics, inspectionTelemetry }) {
             </div>
             <div className="flex items-baseline space-x-2">
               <span className="text-3xl lg:text-4xl font-extrabold text-charcoal-900 dark:text-warm-100 font-mono tracking-tight">
-                {latency.toFixed(1)}
+                {Number(latency || 0).toFixed(1)}
               </span>
               <span className="pill-badge px-2 py-0.5 bg-warm-200/80 dark:bg-darkwarm-surface text-charcoal-700 dark:text-warm-200 text-xs font-bold border border-warm-300/50">
                 ms / frame

@@ -206,7 +206,13 @@ class Database:
                 "SELECT id, class_id, class_name, confidence, x1, y1, x2, y2 FROM detections WHERE inspection_id = ? ORDER BY confidence DESC",
                 (inspection_id,),
             )
-            inspection["detections"] = [dict(r) for r in cursor.fetchall()]
+            raw_dets = cursor.fetchall()
+            dets = []
+            for r in raw_dets:
+                d = dict(r)
+                d["bbox"] = [d["x1"], d["y1"], d["x2"], d["y2"]]
+                dets.append(d)
+            inspection["detections"] = dets
             return inspection
 
     def get_recent_inspections(self, limit: int = 10) -> List[Dict[str, Any]]:

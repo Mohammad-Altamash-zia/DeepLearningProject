@@ -296,7 +296,7 @@ export default function DashboardOverview({
                         </span>
 
                         <span className="font-mono text-[11px] text-charcoal-500 dark:text-darkwarm-text-muted">
-                          {item.inference_time_ms.toFixed(1)} ms
+                          {Number(item.inference_time_ms || 0).toFixed(1)} ms
                         </span>
                       </div>
 
@@ -359,7 +359,7 @@ export default function DashboardOverview({
                         </span>
                       </td>
                       <td className="py-3 px-4 text-charcoal-900 dark:text-warm-100 font-bold">{item.defect_count}</td>
-                      <td className="py-3 px-4 font-mono text-charcoal-600 dark:text-darkwarm-text-muted">{item.inference_time_ms.toFixed(1)} ms</td>
+                      <td className="py-3 px-4 font-mono text-charcoal-600 dark:text-darkwarm-text-muted">{Number(item.inference_time_ms || 0).toFixed(1)} ms</td>
                       <td className="py-3 px-4">
                         <span className="pill-badge px-2 py-0.5 text-[10px] font-mono bg-warm-100 dark:bg-darkwarm-surface text-charcoal-600 dark:text-darkwarm-text-muted">
                           {item.processing_status === 'IMAGE_EXPIRED' ? 'EXPIRED' : 'ACTIVE'}

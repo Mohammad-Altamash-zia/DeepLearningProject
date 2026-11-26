@@ -230,6 +230,7 @@ class InferenceService:
                     "y1": int(y1),
                     "x2": int(x2),
                     "y2": int(y2),
+                    "bbox": [int(x1), int(y1), int(x2), int(y2)],
                     "width": int(x2 - x1),
                     "height": int(y2 - y1),
                 })
