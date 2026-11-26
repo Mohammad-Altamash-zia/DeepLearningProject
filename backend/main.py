@@ -76,6 +76,16 @@ async def lifespan(app: FastAPI):
     # Start 100-second image retention cleanup service
     cleanup_service.start()
 
+    # Automatically connect to camera on startup
+    try:
+        from backend.config import DEFAULT_SETTINGS
+        from backend.database import db
+        cam_url = db.get_setting("camera_url", DEFAULT_SETTINGS["camera_url"])
+        logger.info(f"Auto-connecting to camera on startup: {cam_url}")
+        camera_service.connect(cam_url)
+    except Exception as e:
+        logger.warning(f"Could not auto-connect camera on startup: {e}")
+
     logger.info(
         f"InspectAI ready. Model loaded: {inference_service.is_loaded}. "
         f"Classes: {inference_service.class_names}"

@@ -30,6 +30,7 @@ export default function TopHeader({
   isInspecting, 
   onStartInspection, 
   onStopInspection,
+  onConnectCamera,
   systemHealth,
   isDarkMode,
   onToggleDarkMode
@@ -139,16 +140,30 @@ export default function TopHeader({
         {/* Right: Hardware Node Badges, Action Button, Dark Mode & User Profile */}
         <div className="hidden md:flex items-center space-x-2.5">
           {/* Hardware Stream Node Indicator */}
-          <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border shadow-tactile text-xs">
-            <span className={`w-2 h-2 rounded-full ${
-              cameraStatus === 'Connected' 
-                ? 'bg-neon-lime ring-4 ring-neon-lime/20 animate-pulse' 
-                : 'bg-warm-400 dark:bg-darkwarm-border'
-            }`} />
-            <span className="text-[11px] font-semibold text-charcoal-700 dark:text-warm-200">
-              {cameraStatus === 'Connected' ? 'Webcam Live' : cameraStatus}
-            </span>
-          </div>
+          {cameraStatus === 'Connected' ? (
+            <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border shadow-tactile text-xs">
+              <span className="w-2 h-2 rounded-full bg-neon-lime ring-4 ring-neon-lime/20 animate-pulse" />
+              <span className="text-[11px] font-semibold text-charcoal-700 dark:text-warm-200">
+                Webcam Live
+              </span>
+            </div>
+          ) : cameraStatus === 'Connecting' ? (
+            <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-warm-100 dark:bg-darkwarm-surface border border-warm-300 dark:border-darkwarm-border shadow-tactile text-xs">
+              <span className="w-2 h-2 rounded-full bg-earth-amber ring-4 ring-earth-amber/20 animate-pulse" />
+              <span className="text-[11px] font-semibold text-charcoal-700 dark:text-warm-200">
+                Connecting...
+              </span>
+            </div>
+          ) : (
+            <button
+              onClick={() => onConnectCamera && onConnectCamera('0')}
+              title="Click to activate laptop webcam"
+              className="pill-btn flex items-center space-x-1.5 px-3 py-1.5 bg-warm-50 dark:bg-darkwarm-surface hover:bg-warm-200 dark:hover:bg-darkwarm-card border border-warm-300 dark:border-darkwarm-border shadow-tactile text-xs font-semibold text-charcoal-800 dark:text-warm-100 cursor-pointer transition-all"
+            >
+              <Camera className="w-3.5 h-3.5 text-earth-olive" />
+              <span className="text-[11px]">Connect Webcam</span>
+            </button>
+          )}
 
           {/* Model Status Pill */}
           <div className="hidden lg:flex items-center space-x-1 px-3 py-1.5 rounded-full bg-white dark:bg-darkwarm-card border border-warm-200 dark:border-darkwarm-border shadow-tactile text-[11px] font-semibold text-charcoal-700 dark:text-warm-200">

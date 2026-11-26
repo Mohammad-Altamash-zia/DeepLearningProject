@@ -64,6 +64,13 @@ export default function App() {
       if (inspStatus?.last_inspection) {
         setLatestInspection(inspStatus.last_inspection);
       }
+
+      // Auto-connect webcam if currently disconnected
+      if (!cam?.status || cam.status === 'Disconnected') {
+        api.connectCamera('0').then(() => {
+          setCameraStatus('Connecting');
+        }).catch(() => {});
+      }
     } catch (e) {
       console.error('Initial data loading failed:', e);
     }
@@ -124,6 +131,9 @@ export default function App() {
   // Actions
   const handleStartInspection = async () => {
     try {
+      if (cameraStatus === 'Disconnected') {
+        handleConnectCamera('0');
+      }
       await api.startInspection();
       setIsInspecting(true);
     } catch (e) {
@@ -191,6 +201,7 @@ export default function App() {
         isInspecting={isInspecting}
         onStartInspection={handleStartInspection}
         onStopInspection={handleStopInspection}
+        onConnectCamera={handleConnectCamera}
         systemHealth={systemHealth}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}

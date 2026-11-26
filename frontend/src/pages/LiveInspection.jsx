@@ -51,7 +51,10 @@ export default function LiveInspection({
 
     api.getCameraStatus().then(st => {
       if (st?.stream_url) setSelectedDevice(String(st.stream_url));
-    });
+      if (!st?.status || st.status === 'Disconnected') {
+        onConnectCamera(st?.stream_url || '0');
+      }
+    }).catch(() => {});
   }, []);
 
   // Refresh camera stream key whenever camera connects
@@ -355,8 +358,15 @@ export default function LiveInspection({
                 <VideoOff className="w-10 h-10 mb-3 text-warm-400" />
                 <p className="text-xs font-bold text-warm-100">Webcam Not Connected</p>
                 <p className="text-[11px] text-warm-400 mt-1 max-w-xs">
-                  Click 'Turn On Laptop Webcam' above or select 'Simulate Synthetic Feed' to begin.
+                  Camera feed is currently offline. Connect your laptop webcam to begin visual streaming.
                 </p>
+                <button
+                  onClick={() => onConnectCamera(selectedDevice)}
+                  className="pill-btn mt-3 px-4 py-2 bg-white text-charcoal-900 hover:bg-warm-100 font-bold text-xs shadow-tactile flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer"
+                >
+                  <Video className="w-3.5 h-3.5 text-neon-lime-dark" />
+                  <span>Turn On Laptop Webcam</span>
+                </button>
               </div>
             )}
           </div>
