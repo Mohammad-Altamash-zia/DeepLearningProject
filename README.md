@@ -1,284 +1,391 @@
-# InspectAI — Industrial Defect Detection & Quality Inspection System
+# InspectAI — Autonomous Industrial Defect Detection System
 
-InspectAI is a production-grade, local industrial quality inspection system designed for steel manufacturing and surface defect detection. Powered by an Ultralytics YOLO11n model exported to ONNX and trained on the Severstal Steel Defect Detection dataset, InspectAI interfaces with mobile phone IP cameras over local Wi-Fi to deliver real-time visual inspection, PASS/FAIL gating decisions, and rolling image retention.
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![YOLO11n](https://img.shields.io/badge/YOLO11-Ultralytics_ONNX-00FFFF?style=flat)](https://github.com/ultralytics/ultralytics)
+[![React 18](https://img.shields.io/badge/Frontend-React_18_%2B_Vite_6-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS_v3-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![SQLite](https://img.shields.io/badge/Database-SQLite_WAL-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+**InspectAI** is a local-first, autonomous quality inspection platform engineered for high-speed manufacturing lines, steel processing mills, and visual quality assurance. Powered by an Ultralytics **YOLO11n** model exported to **ONNX Runtime** and trained on the industrial **Severstal Steel Defect Detection** benchmark, InspectAI continuously ingests visual feeds, computes sub-second defect bounding boxes, enforces strict **PASS / FAIL** acceptance gating, and maintains a dual-tier storage strategy (rolling 100-second disk buffer + permanent SQLite audit logging).
 
 ---
 
-## Architecture Overview
+## Table of Contents
+
+- [System Architecture](#system-architecture)
+- [Key Features](#key-features)
+- [Design System & UI/UX](#design-system--uiux)
+- [Severstal Defect Taxonomy & Training](#severstal-defect-taxonomy--training)
+- [Hardware & Stream Input Flexibility](#hardware--stream-input-flexibility)
+- [Project Directory Structure](#project-directory-structure)
+- [Quick Start Guide](#quick-start-guide)
+  - [Automated Single-Command Launcher](#1-automated-launcher-recommended)
+  - [Manual Production Deployment](#2-manual-step-by-step-single-port-8000)
+  - [Frontend & Backend Development Mode](#3-development-mode-hot-reloading)
+- [Dual-Tiered Storage & Retention Architecture](#dual-tiered-storage--retention-architecture)
+- [REST API & WebSocket Reference](#rest-api--websocket-reference)
+- [Verification & Diagnostic Suite](#verification--diagnostic-suite)
+- [Team & Version Control](#team--version-control)
+
+---
+
+## System Architecture
 
 ```
-                               Mobile Phone IP Camera
-                               (e.g. IP Webcam app)
-                                         │
-                                         ▼
-                               Camera Stream Receiver
-                            (OpenCV Low-Latency Reader)
-                                         │
-                                         ▼
-                           1-Second Capture Scheduler
-                                         │
-                                         ▼
-                              Inference Buffer Queue
-                           (Frame-Dropping Overflow Policy)
-                                         │
-                                         ▼
-                                YOLO11n ONNX Model
-                             (ONNX Runtime CPU / GPU)
-                                         │
-                                         ▼
-                            Defect Detection Processing
-                          (Aspect Letterboxing & Scaled NMS)
-                                         │
-                                         ▼
-                                PASS / FAIL Decision
-                                         │
-                     ┌───────────────────┴───────────────────┐
-                     ▼                                       ▼
-             SQLite Database                       Local Image Storage
-          (inspections, detections)              (storage/captures & annotated)
-                     │                                       │
-                     │                           Rolling 100s Retention Daemon
-                     │                                       │
-                     └───────────────────┬───────────────────┘
-                                         ▼
-                                  FastAPI Backend
-                               (REST Endpoints & /ws)
-                                         │
-                                         ▼
-                               React + Vite Dashboard
-                         (Industrial UI with Recharts)
+                          INPUT STREAM SOURCES
+       ┌───────────────────────────┼───────────────────────────┐
+       ▼                           ▼                           ▼
+ Integrated Webcam         Mobile Phone IP Camera      Manual Image Upload
+(V4L2 /dev/video0)       (HTTP MJPEG / RTSP Wi-Fi)    (JPG / PNG / WebP files)
+       │                           │                           │
+       └───────────────────────────┼───────────────────────────┘
+                                   │
+                                   ▼
+                        Camera Stream Receiver
+                     (OpenCV Threaded Reader Loop)
+                                   │
+                                   ▼
+                      1-Second Inspection Cadence
+                    (Bounded Thread-Safe Queue)
+                                   │
+                                   ▼
+                     YOLO11n ONNX Inference Engine
+               (Aspect Letterbox + NMS + Confidence Filter)
+                                   │
+                                   ▼
+                       PASS / FAIL Decision Logic
+                 [0 Defects = PASS  |  ≥1 Defect = FAIL]
+                                   │
+                  ┌────────────────┴────────────────┐
+                  ▼                                 ▼
+         SQLite Database                   Local Disk Storage
+      (Permanent Audit Trail)           (storage/captures & annotated)
+      • Inspection code & timestamp     • High-resolution JPEG frames
+      • Pass/fail status & counts       • Visual bounding box overlays
+      • Precision bbox coordinates                      │
+      • Latency & telemetry metrics                     ▼
+                  │                        Rolling 100s Cleanup Daemon
+                  │                        (Deletes raw/annotated images)
+                  └────────────────┬────────────────┘
+                                   │
+                                   ▼
+                            FastAPI Backend
+                    (REST API + /ws WebSocket Hub)
+                                   │
+                                   ▼
+                         React 18 SPA Dashboard
+              (Warm Neutral Cream UI, Recharts, Dark Mode)
 ```
 
 ---
 
 ## Key Features
 
-1. **Mobile Phone IP Camera Receiver:**
-   - Connects to any mobile IP camera streaming over Wi-Fi (HTTP MJPEG, RTSP, or local webcam).
-   - Dedicated background thread pulls unbuffered frames to eliminate OpenCV frame latency.
-   - Non-disruptive stream connection testing, automatic reconnection on network drops, and fallback steel surface simulation.
-2. **YOLO11n ONNX Inference:**
-   - Direct execution via `onnxruntime` with letterbox aspect-ratio preservation.
-   - Zero-shot inference time measurement (~30–45ms per frame on CPU).
-   - Detects all 4 Severstal Steel Defect classes:
-     - **Class_1:** Pitted Surface
-     - **Class_2:** Inclusions & Cracks
-     - **Class_3:** Scratches & Gouges
-     - **Class_4:** Patches & Large Delaminations
-3. **1-Second Automated Inspection Scheduler:**
-   - Captures exactly 1 frame per second during active inspection.
-   - Bounded inference queue with automated frame-dropping policy to prevent memory backlog.
-   - Live telemetry tracking: Captured, Processed, and Skipped frames.
-4. **PASS / FAIL Decision Engine:**
-   - **PASS:** No defects detected above the configurable confidence threshold.
-   - **FAIL:** One or more defect instances detected. Annotated bounding boxes with class tags and confidence percentages are rendered and saved.
-5. **Rolling 100-Second Image Retention:**
-   - Background cleanup daemon continuously purges image files (`storage/captures/` and `storage/annotated/`) older than 100 seconds to protect local disk space.
-   - **Full historical text metadata and detection telemetry remain permanently stored in SQLite.**
-6. **Dark Industrial Dashboard UI:**
-   - Built with React, Vite, Tailwind CSS, Lucide icons, and Recharts.
-   - Side-by-side Live Camera Stream and Latest AI Annotated Inspection frame.
-   - Real-time WebSocket event feed (zero page reloads).
-   - Paginated inspection history with modal detail viewer and retention status badges.
-   - Historical analytics charts (PASS vs FAIL donut, Severstal class distributions, timeline trends).
+1. **Multi-Input Camera & Ingestion Engine:**
+   - **Integrated Webcam Auto-Connect:** Automatically acquires the local camera (`/dev/video0` / index `0`) at `640x480` on startup without requiring manual button clicks.
+   - **Mobile IP Camera Support:** Connects over Wi-Fi to any Android or iOS device running apps like *IP Webcam*, *DroidCam*, or RTSP streams.
+   - **Interactive File Upload:** Drag-and-drop or upload custom steel surface images for immediate single-frame inference and annotation.
+   - **Zero-Latency Background Thread:** Decouples video capture from inference processing to prevent OpenCV internal buffer lag.
+   - **Built-In Synthetic Simulation:** Generates continuous synthetic steel roll textures with injected defects when physical cameras are offline.
+
+2. **YOLO11n ONNX Inference Pipeline:**
+   - Lightweight, ultra-fast model (~30–50ms on standard CPUs) running via `onnxruntime`.
+   - Maintains original aspect ratio through bilateral letterbox padding.
+   - Non-Maximum Suppression (NMS) with configurable IoU and confidence thresholds.
+
+3. **1-Second Inspection Cadence & Retention:**
+   - Captures exactly 1 frame per second during active production runs.
+   - Frame-dropping overflow policy to prevent backlog under heavy CPU load.
+   - **100-Second Rolling Retention:** Background worker automatically removes images older than 100 seconds to conserve disk space.
+   - **Permanent Telemetry Log:** All inspection records, defect coordinates, timestamps, and confidence scores remain in SQLite forever.
+
+4. **Robust Single-Page Application (SPA) Resilience:**
+   - **React ErrorBoundary:** Intercepts runtime UI exceptions with an inline recovery interface so the screen never goes blank on unexpected errors.
+   - **Full SPA Routing:** Handles direct page refreshes (`/`, `/live`, `/history`, `/analytics`, `/settings`) with zero 404 or 500 errors.
+   - **Safe Geometry Parsing:** Dual-compatible bounding box handling supporting both flat coordinates (`x1, y1, x2, y2`) and vector arrays (`[x1, y1, x2, y2]`).
 
 ---
 
-## Folder Structure
+## Design System & UI/UX
+
+The dashboard UI was designed around an organic, tactile industrial aesthetic:
+
+- **Color Palette & Tone:**
+  - **Light Mode Background:** Soft, warm neutral cream / light taupe (`#F5F2EB`).
+  - **Dark Mode Background:** Deep charcoal stone (`#141312`) with high-contrast text elements (`#F5F2EB`).
+  - **Theme Persistence:** Stores user preference in browser `localStorage` and respects system preferences (`prefers-color-scheme`).
+- **Squircle & Pill Geometry:**
+  - Modern squircle container cards with rounded pill buttons (`rounded-3xl` and `rounded-2xl`).
+- **Status & Highlight Accents:**
+  - **Neon Lime Accent (`#84CC16`):** Indicates `PASS` quality status, active streaming nodes, and optimal health indicators.
+  - **Earthy Terracotta (`#DC2626` / `#E06D53`):** Highlights `FAIL` defect rejections, bounding box boundaries, and critical alarms.
+  - **Amber (`#F59E0B`):** Represents latency warnings and pending calibrations.
+- **Micro-Interactions & Polish:**
+  - Subtle multi-layered soft drop shadows (`shadow-sm` to `shadow-md`) delivering neo-morphic depth without clutter.
+  - Live charts powered by Recharts (Severstal defect distribution, 24-hour yield bar charts, latency sparklines).
+
+---
+
+## Severstal Defect Taxonomy & Training
+
+The detection model is trained on the Severstal Steel Defect dataset across 4 critical industrial flaw categories:
+
+| Class ID | Defect Name | Description | Severity Impact |
+| :---: | :--- | :--- | :---: |
+| **Class_1** | Pitted Surface | Localized corrosion pits, surface cavities, and roll marks | Medium |
+| **Class_2** | Inclusions & Cracks | Non-metallic structural inclusions, longitudinal fissures | High (Structural) |
+| **Class_3** | Scratches & Gouges | Mechanical abrasion marks, guide scratches, gouging | Medium |
+| **Class_4** | Patches & Delaminations | Large-scale scale patches, lamination tears, surface peeling | Critical (Rejection) |
+
+### Training History & Model Weights
+- **Model Checkpoints:**
+  - ONNX Model: [`models/inspectai_yolo11n.onnx`](models/inspectai_yolo11n.onnx) (Optimized for edge CPU inference)
+  - PyTorch Weights: [`models/best.pt`](models/best.pt)
+- **Training Progression:** Logged in [`models/results.csv`](models/results.csv) across 100 epochs, reaching a validated $mAP_{50}$ of ~0.505 with low box/class/DFL losses.
+
+---
+
+## Hardware & Stream Input Flexibility
+
+InspectAI can ingest video streams from several source types:
+
+```bash
+# 1. Local USB or Laptop Webcam (default index 0)
+0
+
+# 2. Linux Video Device Path
+/dev/video0
+
+# 3. Mobile IP Webcam (Android)
+http://192.168.1.105:8080/video
+
+# 4. RTSP Industrial Security / IP Camera
+rtsp://admin:password@192.168.1.50:554/h264Preview_01_main
+```
+
+---
+
+## Project Directory Structure
 
 ```
 DeepLearning/
 ├── backend/
 │   ├── api/
-│   │   ├── analytics.py        # Analytics KPI & chart endpoints
-│   │   ├── camera.py           # Camera connect, disconnect, stream endpoints
-│   │   ├── inspection.py       # Inspection start/stop, tests & pagination
-│   │   └── system.py           # Health, model status, settings & images
+│   │   ├── analytics.py            # Analytics summary & distribution endpoints
+│   │   ├── camera.py               # Camera connection, devices & MJPEG stream
+│   │   ├── inspection.py           # Cadence start/stop, single test, upload & history
+│   │   └── system.py               # Health checks, model status, image serving
 │   ├── services/
-│   │   ├── camera_service.py   # OpenCV thread-safe camera reader & MJPEG streamer
-│   │   ├── cleanup_service.py  # Rolling 100-second image retention daemon
-│   │   ├── inference_service.py# ONNX Runtime YOLO11n inference & NMS
-│   │   ├── inspection_service.py # 1-second capture scheduler & inference queue
-│   │   └── storage_service.py  # Image write/read management
-│   ├── config.py               # Paths, defect classes, default settings
-│   ├── database.py             # SQLite WAL-mode connection & schema queries
-│   ├── main.py                 # FastAPI application & WebSocket server
-│   ├── requirements.txt        # Backend Python dependencies
-│   └── schemas.py              # Pydantic request & response models
+│   │   ├── camera_service.py       # Threaded OpenCV reader & synthetic simulator
+│   │   ├── cleanup_service.py      # Rolling 100-second retention pruning worker
+│   │   ├── inference_service.py    # ONNX Runtime YOLO11n inference & annotation
+│   │   ├── inspection_service.py   # 1-second cadence scheduler & queue
+│   │   └── storage_service.py      # File system image writer & paths
+│   ├── config.py                   # Paths, defect classes, default tolerances
+│   ├── database.py                 # SQLite WAL connection, schemas & queries
+│   ├── main.py                     # FastAPI app, WebSocket manager, SPA static routes
+│   ├── requirements.txt            # Python dependencies
+│   └── schemas.py                  # Pydantic request & response models
 ├── frontend/
 │   ├── src/
-│   │   ├── components/         # Sidebar, TopHeader, MetricCards
-│   │   ├── pages/              # LiveInspection, Dashboard, History, Analytics, Settings
-│   │   ├── services/           # REST API client & WebSocket manager
-│   │   ├── App.jsx             # Root layout & real-time event router
-│   │   └── main.jsx
-│   ├── index.html
+│   │   ├── components/
+│   │   │   ├── MetricCards.jsx     # Top KPI metric cards
+│   │   │   ├── Sidebar.jsx         # Navigation menu
+│   │   │   └── TopHeader.jsx       # Top navigation, status pills, dark mode toggle
+│   │   ├── pages/
+│   │   │   ├── About.jsx           # System specifications & model documentation
+│   │   │   ├── Analytics.jsx       # Long-term statistical reports & charts
+│   │   │   ├── CameraSettings.jsx  # Resolution, threshold & stream configuration
+│   │   │   ├── DashboardOverview.jsx # Executive overview & quick activity log
+│   │   │   ├── InspectionHistory.jsx # Paginated audit log & modal viewer
+│   │   │   ├── LiveInspection.jsx  # Side-by-side live video & annotated capture
+│   │   │   └── SystemStatus.jsx    # Health metrics, CPU/memory, retention stats
+│   │   ├── services/
+│   │   │   └── api.js              # Fetch client & WebSocket subscription manager
+│   │   ├── App.jsx                 # Master application controller & state
+│   │   ├── main.jsx                # React root mount with ErrorBoundary
+│   │   └── index.css               # Tailwind directives & theme custom properties
 │   ├── package.json
 │   ├── tailwind.config.js
 │   └── vite.config.js
-├── models/
-│   └── inspectai_yolo11n.onnx  # Trained YOLO11n ONNX model (Severstal steel dataset)
-├── storage/
-│   ├── captures/               # Raw captured images (100s rolling buffer)
-│   └── annotated/              # Annotated detection images (100s rolling buffer)
 ├── database/
-│   └── inspectai.db            # Persistent SQLite database
-├── test_images/                # Sample clean and defective steel test strips
-├── results/                    # Test inspection outputs
-├── .env.example
-├── .gitignore
-├── run.sh                      # Linux / Git Bash single-command launcher
-├── run.bat                     # Windows Command Prompt launcher
-└── README.md
+│   └── inspectai.db                # SQLite audit database
+├── models/
+│   ├── best.pt                     # PyTorch model checkpoint
+│   ├── inspectai_yolo11n.onnx      # Exported ONNX model
+│   └── results.csv                 # 100-epoch training metrics
+├── storage/
+│   ├── captures/                   # Raw captured frames (100-second buffer)
+│   └── annotated/                  # Annotated defect frames (100-second buffer)
+├── test_images/
+│   ├── clean_steel.jpg             # Defect-free surface test strip
+│   └── defect_steel.jpg            # Flawed surface test strip
+├── run.sh                          # Linux / macOS automated runner
+├── run.bat                         # Windows CMD launcher
+└── README.md                       # Comprehensive documentation
 ```
 
 ---
 
-## Installation & Setup
+## Quick Start Guide
 
-### Prerequisites
-- **Python:** 3.10, 3.11, 3.12, 3.13, or 3.14
-- **Node.js:** v18+ and npm
-- **Operating System:** Windows, Linux, or macOS
+### 1. Automated Launcher (Recommended)
 
-### 1. Setup Python Virtual Environment
+Run the included startup script. It checks your virtual environment, builds the React frontend if needed, ensures all directories exist, and starts the server on port `8000`:
+
 ```bash
-# In the project root
-python -m venv venv
-
-# On Linux / Git Bash:
-source venv/bin/activate
-
-# On Windows CMD / PowerShell:
-# venv\Scripts\activate
-
-# Install backend dependencies
-pip install -r backend/requirements.txt
-```
-
-### 2. Setup Frontend
-```bash
-cd frontend
-npm install
-npm run build
-cd ..
-```
-
----
-
-## How to Connect Your Mobile Phone IP Camera
-
-You can use any Android or iOS device as an industrial IP camera:
-
-1. **Install an IP Camera App:**
-   - Android: **IP Webcam** by Pavel Khlebovich (recommended) or **DroidCam**.
-   - iOS: **IP Camera Lite** or **EpocCam**.
-2. **Connect to Wi-Fi:**
-   - Ensure your phone and the host PC are connected to the same local Wi-Fi router.
-3. **Start the Stream:**
-   - In IP Webcam, scroll down and tap **Start server**.
-   - Note the URL displayed on the phone screen (e.g., `http://192.168.1.105:8080`).
-4. **Connect in InspectAI:**
-   - In the InspectAI dashboard, enter:
-     ```text
-     http://192.168.1.105:8080/video
-     ```
-   - Click **Connect Camera** or test via the **Camera Settings** tab.
-   - The live feed will immediately appear in the console.
-
-> **Offline/Simulation Mode:** If your mobile phone is not on the same network or you are testing offline, click **Simulate Feed** or select a sample steel strip from the **Test Frame** dropdown.
-
----
-
-## Running the Application
-
-### Option A: One-Click Startup Script
-
-**On Linux or Windows Git Bash:**
-```bash
+cd /home/devfardeen/Desktop/DeepLearning
 ./run.sh
 ```
 
-**On Windows Command Prompt:**
-```cmd
-run.bat
+Open your browser at **`http://localhost:8000`**.
+
+---
+
+### 2. Manual Step-by-Step (Single Port 8000)
+
+1. **Activate Virtual Environment:**
+   ```bash
+   cd /home/devfardeen/Desktop/DeepLearning
+   source venv/bin/activate
+   ```
+
+2. **Install Backend Dependencies (if first run):**
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+
+3. **Build Frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run build
+   cd ..
+   ```
+
+4. **Launch Server:**
+   ```bash
+   export PYTHONPATH="/home/devfardeen/Desktop/DeepLearning"
+   python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+   ```
+
+---
+
+### 3. Development Mode (Hot-Reloading)
+
+For frontend developers making live UI changes:
+
+- **Terminal 1 — Backend (FastAPI with Auto-Reload):**
+  ```bash
+  cd /home/devfardeen/Desktop/DeepLearning
+  source venv/bin/activate
+  export PYTHONPATH="/home/devfardeen/Desktop/DeepLearning"
+  python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+  ```
+
+- **Terminal 2 — Frontend (Vite Dev Server):**
+  ```bash
+  cd /home/devfardeen/Desktop/DeepLearning/frontend
+  npm run dev
+  ```
+
+Open **`http://localhost:5173`** (Vite proxies all `/api` and `/ws` calls directly to port `8000`).
+
+---
+
+## Dual-Tiered Storage & Retention Architecture
+
+```
+Capture Frame (1080p / 480p)
+           │
+           ├───► Written to SQLite Database (Permanent)
+           │     • Full inspection metadata
+           │     • Precision bounding boxes [x1, y1, x2, y2]
+           │     • Defect classification & confidence scores
+           │     • Latency & hardware telemetry
+           │
+           └───► Written to Local Filesystem (Rolling Buffer)
+                 • storage/captures/capture_*.jpg
+                 • storage/annotated/annotated_*.jpg
+                           │
+                           ▼ (After 100 Seconds)
+                 Cleanup Service unlinks files to preserve disk space.
+                 Database flags record as "IMAGE_EXPIRED".
 ```
 
-### Option B: Manual Two-Terminal Startup (Development Mode)
+---
 
-**Terminal 1 (FastAPI Backend):**
+## REST API & WebSocket Reference
+
+### Core Endpoints
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/api/health` | System health check (database status, uptime, model loaded) |
+| `GET` | `/api/model/status` | Model architecture, execution provider, and class taxonomy |
+| `GET` | `/api/camera/status` | Live camera stream state, active FPS, and resolution |
+| `GET` | `/api/camera/devices` | Lists local V4L2 video devices available on the host |
+| `POST`| `/api/camera/connect` | Connects to a video stream (`{"url": "0"}` or IP stream) |
+| `POST`| `/api/camera/disconnect`| Disconnects current camera and frees device hardware |
+| `GET` | `/api/camera/stream` | Continuous MJPEG multipart stream for live viewing |
+| `POST`| `/api/inspection/start` | Starts the 1-second automated capture and inference loop |
+| `POST`| `/api/inspection/stop` | Stops the automated capture loop |
+| `GET` | `/api/inspection/status`| Telemetry: total captured, processed, skipped, last latency |
+| `POST`| `/api/inspection/test-single` | On-demand test of current frame or built-in test strip |
+| `POST`| `/api/inspection/upload` | Multipart file upload for instant single-image inspection |
+| `GET` | `/api/inspections` | Paginated inspection audit history with search and status filters |
+| `GET` | `/api/inspections/{id}`| Retrieves single inspection record with full detection boxes |
+| `GET` | `/api/analytics/summary`| Total count, pass rate, fail rate, average latency |
+| `GET` | `/api/analytics/defects`| Defect class occurrence breakdown for charts |
+
+### WebSocket Event Stream (`/ws`)
+
+Clients receive live JSON messages:
+- `INIT_STATE`: Emitted upon connection with immediate camera, inspection, and model status.
+- `NEW_INSPECTION`: Emitted every second with inspection decision, defect count, and image filename.
+- `STATISTICS_UPDATE`: Emitted periodically with updated pass/fail rates.
+- `CAMERA_STATUS`: Emitted whenever camera connects, disconnects, or drops frames.
+
+---
+
+## Verification & Diagnostic Suite
+
+You can verify the backend services from the command line:
+
 ```bash
-source venv/bin/activate    # or venv\Scripts\activate on Windows
-export PYTHONPATH=.         # or set PYTHONPATH=%cd% on Windows CMD
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+# 1. Verify YOLO11n ONNX Inference
+PYTHONPATH=. python -c "
+import cv2
+from backend.services.inference_service import inference_service
+img = cv2.imread('test_images/defect_steel.jpg')
+status, dets, _, latency = inference_service.predict(img)
+print(f'Decision: {status} | Found: {len(dets)} defect(s) | Latency: {latency:.1f}ms')
+"
+
+# 2. Verify Database Connection & Retention Daemon
+PYTHONPATH=. python -c "
+from backend.database import db
+from backend.services.cleanup_service import cleanup_service
+print('Summary:', db.get_analytics_summary())
+pruned = cleanup_service.run_cleanup_cycle()
+print(f'Pruned {pruned} expired image(s) from disk buffer.')
+"
+
+# 3. Test Camera Device Prober
+PYTHONPATH=. python -c "
+from backend.services.camera_service import camera_service
+success, msg = camera_service.test_connection('0')
+print('Camera Test (Index 0):', success, msg)
+"
 ```
 
-**Terminal 2 (React Vite Frontend):**
-```bash
-cd frontend
-npm run dev
-```
-
-Open your browser at:
-- **Frontend Development Server:** [http://localhost:5173](http://localhost:5173)
-- **FastAPI Backend & API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Built Production Bundle:** [http://localhost:8000](http://localhost:8000)
-
 ---
 
-## Configuration Options
+## Team & Version Control
 
-Settings can be customized live from the **Camera Settings** dashboard tab or modified in SQLite:
+- **Lead Developer & Contributor:** [devops-fardeen](https://github.com/devops-fardeen)
+- **Primary Team Repository:** [Mohammad-Altamash-zia/DeepLearningProject](https://github.com/Mohammad-Altamash-zia/DeepLearningProject)
+- **Personal Fork:** [devops-fardeen/DeepLearningProject](https://github.com/devops-fardeen/DeepLearningProject)
 
-| Setting | Default | Description |
-| :--- | :--- | :--- |
-| `camera_url` | `http://192.168.1.100:8080/video` | IP camera MJPEG/RTSP stream URL or webcam device index |
-| `capture_interval` | `1.0` | Cadence in seconds between automated inspection captures |
-| `confidence_threshold` | `0.25` | YOLO defect detection confidence threshold (0.05 to 0.95) |
-| `iou_threshold` | `0.45` | Non-Maximum Suppression (NMS) overlap threshold |
-| `retention_period` | `100` | Rolling retention buffer in seconds for stored image files |
-| `model_path` | `models/inspectai_yolo11n.onnx` | Path to trained ONNX model |
-
----
-
-## Verification & Testing Suite
-
-InspectAI includes verification tests for all system components:
-
-1. **ONNX Model & Inference Test:**
-   ```bash
-   PYTHONPATH=. python -c "
-   import cv2
-   from backend.services.inference_service import inference_service
-   img = cv2.imread('test_images/defect_steel.jpg')
-   status, dets, _, latency = inference_service.predict(img)
-   print(f'Test Result: {status}, Defects: {len(dets)}, Latency: {latency:.1f}ms')
-   "
-   ```
-2. **Database & Retention Test:**
-   ```bash
-   PYTHONPATH=. python -c "
-   from backend.database import db
-   from backend.services.cleanup_service import cleanup_service
-   print('Analytics:', db.get_analytics_summary())
-   deleted = cleanup_service.run_cleanup_cycle()
-   print(f'Pruned {deleted} expired images from rolling buffer.')
-   "
-   ```
-3. **Camera Stream Prober:**
-   ```bash
-   PYTHONPATH=. python -c "
-   from backend.services.camera_service import camera_service
-   success, msg = camera_service.test_connection('http://192.168.1.100:8080/video')
-   print('Probe Result:', success, msg)
-   "
-   ```
-
----
-
-## Known Limitations & Best Practices
-
-1. **Network Bandwidth on Wi-Fi:** Ensure your phone is connected to 5GHz Wi-Fi if using high resolutions (1080p+) to prevent network packet drops.
-2. **Lighting Consistency:** In manufacturing defect detection, consistent non-glare top lighting yields optimal bounding-box precision.
-3. **CPU vs GPU:** Default execution provider is `CPUExecutionProvider`. For GPU acceleration on Windows with NVIDIA, install `onnxruntime-gpu` and compatible CUDA/cuDNN drivers.
-
+Both repositories are kept in synchronized parity across the `main` branch.
